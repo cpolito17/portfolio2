@@ -1,4 +1,4 @@
 node_modules/
+dist/
 *.png
-shot.mjs
-probe.mjs
+.wrangler/

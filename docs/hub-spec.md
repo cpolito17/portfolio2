@@ -1,10 +1,11 @@
-# Minimal Hub — Design Spec
+# Hub Design Spec
 
 The new `charliepolito.com`. A grid of large buttons over a dithered pixel-art night
 sky, deployed as a Cloudflare Worker. Replaces the previous portfolio entirely; the
 only things carried over are documented in [design-transfer.md](design-transfer.md).
 
-A working prototype of everything below lives in [`/prototype/index.html`](../prototype/index.html).
+The implementation lives in [`src/`](../src) and builds to `dist/`. See
+[README](../README.md) for build and deploy.
 
 ---
 
@@ -59,6 +60,10 @@ same 1.4px border. Only scale, padding, icon size, and type size differ.
 | Name | 1.06rem / 500 | 0.85rem / 500 |
 | Description | 0.8rem, `white/42` | 0.72rem, clamped to 3 lines |
 | Hover / active | `scale(1.02)` / `scale(0.98)` | `scale(1.05)` / `scale(0.95)` |
+
+**Small tiles never truncate.** There is no line clamp; copy is written to fit the
+box. A clamped description that hides text while the tile still has room is a bug,
+not a layout.
 
 **About me** carries a dashed accent rim over a faint warm tint — same material,
 distinct border. Its title is set larger (1.25rem/600) and it carries no
@@ -287,40 +292,53 @@ leader-line draw, and the twinkle in one rule.
 
 ## 6. About page
 
-Tile in the bottom-right, distinct border: a dashed accent rim over a faint warm tint,
-rather than a different material. It stays part of the set while clearly not being an
-app.
+Route `/about`. Tile in the bottom-right of the grid, distinct border: a dashed
+accent rim over a faint warm tint, rather than a different material. It stays part
+of the set while clearly not being an app. Title set larger, no description.
+
+The resume sits on its own glass panel rather than directly on the canvas. Long-form
+reading scrolls past the bright atmospheric limb, and text on the raw sky drops below
+WCAG AA there. Measured worst case on the panel is 6.35:1.
 
 Motion, in the correct terms:
 
-- Navigation is a **page transition**; if the tile expands to become the page, that's
-  a **shared element transition**.
-- The back button uses a **direction-aware transition** — reversing the entrance
-  rather than replaying it forward.
-- Body copy enters as a **stagger** of **slide-in + fade-in**, paragraphs ~80ms apart.
-  That stagger is what makes it read as "flowing up" rather than appearing at once.
+- Navigation is a **page transition**, with a **direction-aware** variant so the back
+  button reverses the entrance rather than replaying it forward.
+- Body copy enters as a **stagger** of **slide-in** and **fade-in**, 70ms apart,
+  capped at 560ms total.
 - Back button is top-left, `.liquid-glass` pill, `rounded-full`.
 
-Keep the whole entrance under ~400ms. **Frequency of use**: this is a page the owner
-will hit constantly, and a 1.2s cascade is delightful once and irritating by the fifth
-visit.
+**Frequency of use** governs the timing: this is a page the owner hits constantly, and
+a long cascade is delightful once and irritating by the fifth visit.
 
----
+## 7. Copy rules
 
-## 7. Stack
+Every visible string is checked against the anti-slop rules, mechanically, on the
+rendered page rather than the source:
 
-Astro static output → Cloudflare Workers Static Assets, matching how Apex, Tax Haven,
-and LiteEdit already deploy.
+- **Zero em-dashes and en-dashes.** Restructure into two sentences, a comma, or
+  parentheses. This is the single most common tell and it is binary.
+- No filler verbs (elevate, seamless, unleash, leverage, empower).
+- No performative-craftsman labels, version stamps, scroll cues, or
+  section-number eyebrows.
+- Middle-dot rationed to at most one per line.
+- Descriptions say what the app does for you, not how it is built.
 
-Everything is client-side, so the Worker only serves files — the sky is computed fresh
-in each visitor's browser and the star catalogue is a static asset with an infinite
-cache. No SSR, no API, no KV.
+`audit.mjs` walks the rendered DOM of both pages and fails on any of the above.
 
-Type: Poppins 400/500/600, Source Serif 4 italic for accents only — carried over.
+## 8. Stack
 
----
+No framework and no dependencies. `build.mjs` inlines `src/` into two static pages;
+Cloudflare Workers Static Assets serves `dist/`. Everything is client-side, so the
+Worker only serves files and the star catalogue is a static asset with an infinite
+cache.
 
-## 8. Open questions
+The Worker claims only `charliepolito.com/` and `charliepolito.com/about`, leaving the
+existing per-app workers alone.
+
+Type: Poppins 400/500/600, Source Serif 4 italic for accents only, both carried over.
+
+## 9. Open questions
 
 1. **Hosting** for Localize and Take the Long Way, which need real backends behind
    their paths rather than static assets.

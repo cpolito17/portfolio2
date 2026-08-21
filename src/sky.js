@@ -1,155 +1,5 @@
-<title>Orrery Hub</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Source+Serif+4:ital,wght@1,400&display=swap">
-
-<style>
-/* ── Night-sky hub. Deliberately single-theme: the page IS a night sky, so it
-   commits to one visual world and paints every colour explicitly. ── */
-:root{
-  --ink:#ffffff;
-  --ink-2:rgba(255,255,255,.62);
-  --ink-3:rgba(255,255,255,.42);
-  --ground:#05060d;
-  --accent:#e8c170;              /* warm: icons + celestial labels only */
-  --radius:1.5rem;
-  --font:'Poppins',ui-sans-serif,system-ui,sans-serif;
-  --serif:'Source Serif 4',ui-serif,Georgia,serif;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;background:var(--ground);color:var(--ink);
-  font-family:var(--font);-webkit-font-smoothing:antialiased;
-  min-height:100vh;overflow-x:hidden;
-}
-
-/* ── Sky layers ───────────────────────────────────────────── */
-#sky{
-  position:fixed;inset:0;width:100%;height:100%;z-index:0;
-  image-rendering:pixelated;image-rendering:crisp-edges;
-  background:var(--ground);
-}
-#labels{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
-.lbl-line{fill:none;stroke:var(--accent);stroke-width:1;opacity:.55;
-  stroke-dasharray:1;stroke-dashoffset:1;animation:draw-lead .5s cubic-bezier(.65,0,.35,1) forwards}
-@keyframes draw-lead{to{stroke-dashoffset:0}}
-.lbl-text{fill:var(--accent);font-family:var(--font);font-size:9px;font-weight:500;
-  letter-spacing:.14em;text-transform:uppercase;opacity:0;animation:lbl-in .4s ease-out .35s forwards}
-.lbl-halo{fill:none;stroke:rgba(5,6,13,.85);stroke-width:3.5;stroke-linejoin:round;
-  font-family:var(--font);font-size:9px;font-weight:500;letter-spacing:.14em;
-  text-transform:uppercase;opacity:0;animation:lbl-in .4s ease-out .35s forwards}
-@keyframes lbl-in{to{opacity:1}}
-
-/* ── Liquid glass (ported verbatim from the previous portfolio) ── */
-.glass{
-  border:1.4px solid transparent;
-  background:
-    linear-gradient(rgba(255,255,255,.04),rgba(255,255,255,.04)) padding-box,
-    linear-gradient(180deg,
-      rgba(255,255,255,.45) 0%, rgba(255,255,255,.15) 20%,
-      transparent 40%, transparent 60%,
-      rgba(255,255,255,.15) 80%, rgba(255,255,255,.45) 100%) border-box;
-  -webkit-backdrop-filter:blur(16px) saturate(150%);
-  backdrop-filter:blur(16px) saturate(150%);
-  box-shadow:inset 0 1px 1px rgba(255,255,255,.1);
-  position:relative;overflow:hidden;
-}
-.glass::after{
-  content:'';position:absolute;inset:-60%;pointer-events:none;
-  background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.07) 50%,transparent 58%);
-  animation:glass-sheen 10s cubic-bezier(.45,0,.55,1) infinite alternate;
-}
-@keyframes glass-sheen{from{transform:translateX(-18%)}to{transform:translateX(18%)}}
-
-/* ── Shell ────────────────────────────────────────────────── */
-.shell{position:relative;z-index:2;max-width:1180px;margin:0 auto;
-  padding:clamp(1.5rem,4vw,3rem) clamp(1rem,3vw,2rem) 3rem;
-  min-height:100vh;display:flex;flex-direction:column;gap:clamp(1.5rem,4vw,2.75rem)}
-.masthead{display:flex;align-items:baseline;gap:1rem}
-.wordmark{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:600;letter-spacing:-.045em;margin:0}
-
-/* ── Tile grid ────────────────────────────────────────────── */
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(.7rem,1.5vw,1rem);
-  flex:1;align-content:start}
-.tile{
-  border-radius:var(--radius);text-decoration:none;color:inherit;display:flex;
-  transition:transform .18s cubic-bezier(.22,1,.36,1);cursor:pointer;
-}
-.tile:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-.tile-inner{display:flex;gap:.85rem;align-items:flex-start;width:100%;position:relative;z-index:1}
-
-.tile.lg{padding:clamp(1.1rem,2.2vw,1.5rem)}
-.tile.lg:hover{transform:scale(1.02)}
-.tile.lg:active{transform:scale(.98)}
-.tile.sm{padding:clamp(.85rem,1.8vw,1.1rem)}
-.tile.sm:hover{transform:scale(1.05)}
-.tile.sm:active{transform:scale(.95)}
-
-.icon-well{border-radius:999px;background:rgba(255,255,255,.1);flex-shrink:0;
-  display:flex;align-items:center;justify-content:center}
-.tile.lg .icon-well{width:48px;height:48px}
-.tile.sm .icon-well{width:34px;height:34px}
-.icon-well svg{display:block;image-rendering:pixelated}
-.tile.lg .icon-well svg{width:32px;height:32px}
-.tile.sm .icon-well svg{width:22px;height:22px}
-
-.tile-copy{min-width:0;display:flex;flex-direction:column;gap:.3rem}
-.tile-name{font-weight:500;letter-spacing:-.015em;margin:0;line-height:1.2}
-.tile.lg .tile-name{font-size:1.06rem}
-.tile.sm .tile-name{font-size:.85rem}
-.tile-desc{color:var(--ink-3);margin:0;line-height:1.45}
-.tile.lg .tile-desc{font-size:.8rem}
-.tile.sm .tile-desc{font-size:.72rem;
-  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-
-/* About: same material, distinct border — a dashed accent rim, not a new surface */
-.tile.about{
-  border:1.4px dashed rgba(232,193,112,.55);
-  background:linear-gradient(rgba(232,193,112,.05),rgba(232,193,112,.05)) padding-box;
-  box-shadow:inset 0 1px 1px rgba(255,255,255,.1);
-}
-.tile.about .icon-well{background:rgba(232,193,112,.16)}
-.tile.about .tile-name{color:var(--accent);font-size:1.25rem;font-weight:600;letter-spacing:-.02em}
-.tile.about .tile-inner{align-items:center}
-.tile.about .icon-well{width:44px;height:44px}
-.tile.about .icon-well svg{width:28px;height:28px}
-
-.footnote{font-size:.68rem;color:var(--ink-3);letter-spacing:.16em;text-transform:uppercase;
-  text-align:center;margin:0}
-.footnote b{color:var(--ink-2);font-weight:500}
-
-@media (max-width:860px){
-  .grid{grid-template-columns:repeat(2,1fr)}
-  .grid > .tile{grid-column:auto!important;grid-row:auto!important}
-  .tile.lg{grid-column:span 2!important}
-}
-@media (max-width:520px){
-  .grid{grid-template-columns:1fr}
-  .grid > .tile{grid-column:span 1!important}
-  .tile.sm .tile-desc{-webkit-line-clamp:2}
-}
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
-    transition-duration:.01ms!important}
-  .lbl-line{stroke-dashoffset:0}
-  .lbl-text,.lbl-halo{opacity:1}
-}
-</style>
-
-<canvas id="sky" aria-hidden="true"></canvas>
-<svg id="labels" aria-hidden="true"></svg>
-
-<div class="shell">
-  <header class="masthead">
-    <h1 class="wordmark">Charlie Polito</h1>
-  </header>
-  <nav class="grid" id="grid" aria-label="Applications"></nav>
-  <p class="footnote">Sky rendered for <b id="stamp">tonight</b> — real stars, real planets</p>
-</div>
-
-<script>
-const ICONS = /*__ICONS__*/{};
-const STARS_RAW = "/*__STARS__*/";
+const ICONS = __ICONS__;
+const STARS_RAW = "__STARS__";
 
 /* ═══ 1. Astronomy ══════════════════════════════════════════
    Everything here is standard spherical astronomy + the JPL low-precision
@@ -247,7 +97,7 @@ const STARS = (() => {
 /* ═══ 3. Fisheye projection ═════════════════════════════════
    Stereographic. An all-sky view IS a fisheye, so the barrel character and
    the arcing of every path across the sky fall out of the projection being
-   correct — none of it is faked. */
+   correct - none of it is faked. */
 const VIEW_AZ = 178*DEG, VIEW_ALT = 38*DEG, HALF_FOV = 70*DEG;
 const F = dirOf(VIEW_ALT, VIEW_AZ);
 const RIGHT = (() => { const r=[F[1],-F[0],0], m=Math.hypot(r[0],r[1]); return [r[0]/m,r[1]/m,0]; })();
@@ -283,8 +133,8 @@ const EARTH_RAMP = [[12,22,44],[8,15,32],[5,10,22],[3,6,14]];
 /* The sky is the real sky over HOME; the Earth below is the body you are above.
    From just outside the atmosphere the star positions are identical to the
    ground-level ones (parallax is far under a pixel), so the two stay coherent
-   while the limb reads convex — curving away — the way it does from orbit. */
-const LIMB_TOP = 0.74, LIMB_R = 2.35, GLOW_W = 0.034;   // fractions of canvas width
+   while the limb reads convex - curving away - the way it does from orbit. */
+const LIMB_TOP = 0.84, LIMB_R = 2.35, GLOW_W = 0.034;   // fractions of canvas width
 
 /* Deterministic scatter so city lights never shimmer between frames. */
 function hash2(x, y){
@@ -348,7 +198,7 @@ function buildBackdrop(){
   }
   backdrop = img;
 }
-/* Anything the planet covers is occluded — stars, planets and satellites alike. */
+/* Anything the planet covers is occluded - stars, planets and satellites alike. */
 function occluded(sx, sy){
   const R = LIMB_R*W;
   return Math.hypot(sx - CX, sy - (LIMB_TOP*H + R)) < R + GLOW_W*W*0.42;
@@ -366,7 +216,7 @@ function resize(){
   VIEW_W = vw; VIEW_H = vh;
 }
 
-/* ═══ 5. Satellites — great-circle paths, arced by the projection ═══ */
+/* ═══ 5. Satellites - great-circle paths, arced by the projection ═══ */
 const sats = [];
 function spawnSat(){
   const th = Math.random()*Math.PI*2, ph = Math.acos(2*Math.random()-1);
@@ -439,7 +289,7 @@ function drawBodies(){
   layoutLabels(placed);
 }
 
-/* Labels live in SVG, never in the pixel buffer — pixel-art text at this size
+/* Labels live in SVG, never in the pixel buffer - pixel-art text at this size
    is unreadable, and the leader lines want crisp sub-pixel strokes. */
 let lastLabelKey = '';
 function layoutLabels(items){
@@ -516,7 +366,7 @@ function drawSats(){
 }
 
 /* 12fps: pixel art wants a chunky frame rate, and every glass tile re-blurs
-   its backdrop on every frame the sky changes — so this is the main
+   its backdrop on every frame the sky changes - so this is the main
    performance lever, not a compromise. */
 const FRAME_MS = 1000/12;
 let lastFrame = 0, lastSky = 0;
@@ -528,87 +378,3 @@ function loop(now){
   ctx.putImageData(backdrop, 0, 0);
   drawStars(now); drawSats(); drawBodies();
 }
-
-/* ═══ 7. Tiles ══════════════════════════════════════════════ */
-const PAL = { '1':'#E8EDF7','2':'#9AA6C4','3':'#4A5578','4':'#E8C170' };
-function iconSVG(name){
-  const rows = ICONS[name]; if (!rows) return '';
-  let r = '';
-  for (let y=0;y<16;y++) for (let x=0;x<16;x++){
-    const c = rows[y][x];
-    if (c === '.') continue;
-    r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${PAL[c]}"/>`;
-  }
-  return `<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
-}
-const LARGE = [
-  { id:'cairn', name:'Cairn', url:'https://tasks.charliepolito.com',
-    desc:'A task manager with a real week attached. Drag work onto a planner grid, see what blocks what as a dependency graph, and keep personal and work life apart.' },
-  { id:'localize', name:'Localize', url:'https://charliepolito.com/localize',
-    desc:'Search a big-box brand and get the independent shops near you instead. Every result carries a transparent 0\u2013100 score for how genuinely local it is.' },
-  { id:'apex', name:'Apex', url:'https://charliepolito.com/apex',
-    desc:'Scans the road network around any address and ranks the roads worth driving. Mapped with per-corner curvature colouring, re-tunable without a re-scan.' },
-  { id:'trajectory', name:'Trajectory', url:'https://charliepolito.com/trajectory',
-    desc:'Projects your net worth from today to age 100, with sixteen kinds of life event you can drop on the timeline. No accounts, and nothing leaves your browser.' }
-];
-const SMALL = [
-  { id:'homegamehero', name:'HomeGameHero', url:'https://charliepolito.com/homegame',
-    desc:'Chip, blind, and payout math for home poker. Works offline and settles the night in the fewest possible payments.' },
-  { id:'liteedit', name:'LiteEdit', url:'https://liteedit.charliepolito.com',
-    desc:'A photo editor that runs entirely in your browser. Layers, non-destructive transforms, full undo \u2014 no upload, no account.' },
-  { id:'ttlw', name:'Take the Long Way', url:'https://charliepolito.com/takethelongway',
-    desc:'Plots a road trip through the roadside oddities and ghost towns along your route, then hands the whole thing to Google Maps.' },
-  { id:'taxhaven', name:'Tax Haven', url:'https://charliepolito.com/taxhaven',
-    desc:"You're handed the US tax code and the federal budget. Redesign both, hit simulate, and find out what you did to the country." },
-  { id:'payload', name:'PAYLOAD', url:'https://charliepolito.com/payload',
-    desc:'A 2D space-mining roguelite. Drill, haul, and survive the launch back to orbit \u2014 every sprite drawn in code.' },
-  { id:'keeran', name:'Architecture Portfolio', url:'https://keerancross.com',
-    desc:'An architecture portfolio I built for my girlfriend, in full Frutiger Aero \u2014 cursor-reactive bubbles, animated waves, a Windows 98 cursor.' }
-];
-
-/* Slot template. Large tiles are spread across every row rather than stacked at
-   the top, and the gap before About is deliberate \u2014 it stops About reading as
-   the seventh app. Which app lands in which slot is shuffled per load. */
-const SLOTS = [
-  { t:'lg', col:'1 / 3', row:1 }, { t:'sm', col:'3 / 4', row:1 }, { t:'sm', col:'4 / 5', row:1 },
-  { t:'sm', col:'1 / 2', row:2 }, { t:'lg', col:'2 / 4', row:2 }, { t:'sm', col:'4 / 5', row:2 },
-  { t:'sm', col:'1 / 2', row:3 }, { t:'sm', col:'2 / 3', row:3 }, { t:'lg', col:'3 / 5', row:3 },
-  { t:'lg', col:'1 / 3', row:4 }
-];
-const shuffle = a => { a=a.slice();
-  for (let i=a.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [a[i],a[j]]=[a[j],a[i]]; }
-  return a; };
-
-const lg = shuffle(LARGE), sm = shuffle(SMALL);
-let li = 0, si = 0;
-const tiles = SLOTS.map(s => {
-  const a = s.t === 'lg' ? lg[li++] : sm[si++];
-  return `
-  <a class="tile glass ${s.t}" href="${a.url}" style="grid-column:${s.col};grid-row:${s.row}">
-    <span class="tile-inner">
-      <span class="icon-well">${iconSVG(a.id)}</span>
-      <span class="tile-copy">
-        <span class="tile-name">${a.name}</span>
-        <span class="tile-desc">${a.desc}</span>
-      </span>
-    </span>
-  </a>`;
-});
-
-const grid = document.getElementById('grid');
-grid.innerHTML = tiles.join('') + `
-  <a class="tile about sm" href="#about" style="grid-column:4 / 5;grid-row:4">
-    <span class="tile-inner">
-      <span class="icon-well">${iconSVG('about')}</span>
-      <span class="tile-copy"><span class="tile-name">About me</span></span>
-    </span>
-  </a>`;
-
-document.getElementById('stamp').textContent =
-  new Date().toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'});
-
-window.addEventListener('resize', resize);
-resize(); recomputeSky();
-for (let i=0;i<2;i++) spawnSat();
-requestAnimationFrame(loop);
-</script>

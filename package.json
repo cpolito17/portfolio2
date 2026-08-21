@@ -1,0 +1,13 @@
+{
+  "name": "charliepolito-hub",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs && npx wrangler dev",
+    "deploy": "node build.mjs && npx wrangler deploy"
+  },
+  "dependencies": {
+    "playwright": "^1.62.1"
+  }
+}

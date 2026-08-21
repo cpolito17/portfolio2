@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "charliepolito-hub",
+  "compatibility_date": "2026-08-01",
+
+  // Static assets only. There is no Worker script: the hub is fully
+  // client-side, so Cloudflare serves dist/ directly.
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+
+  // Only the two paths the hub actually serves are claimed, so the existing
+  // workers on /apex, /taxhaven, /trajectory and friends are untouched.
+  // Widening this to charliepolito.com/* would put this worker in front of
+  // all of them, so do that only after checking route precedence.
+  "routes": [
+    { "pattern": "charliepolito.com/", "zone_name": "charliepolito.com" },
+    { "pattern": "charliepolito.com/about", "zone_name": "charliepolito.com" }
+  ]
+}
