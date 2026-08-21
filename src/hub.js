@@ -12,7 +12,7 @@ function iconSVG(name){
 }
 
 /* Cairn is pinned to the first large slot; the other three shuffle. */
-const CAIRN = { id:'cairn', name:'Cairn', url:'https://tasks.charliepolito.com',
+const CAIRN = { id:'cairn', name:'Cairn', url:'https://tasks.charliepolito.com/demo',
   desc:'Plan the week by dragging tasks onto a calendar grid. Shows which tasks are waiting on others, and keeps personal and work separate.' };
 
 const LARGE = [
@@ -35,17 +35,19 @@ const SMALL = [
   { id:'payload', name:'PAYLOAD', url:'https://charliepolito.com/payload',
     desc:'A space-mining roguelite. Drill for ore, then survive the launch back to orbit.' },
   { id:'keeran', name:'Architecture Portfolio', url:'https://keerancross.com',
-    desc:'Built for my girlfriend. Full Frutiger Aero, down to the Windows 98 cursor.' }
+    desc:'Built for my girlfriend. Full Frutiger Aero, down to the Windows 98 cursor.' },
+  { id:'ghost', name:'Ghost in the Machine', url:'https://charliepolito.com/GhostInTheMachine',
+    desc:'Learn how language models actually work, one short interactive lesson at a time.' }
 ];
 
 /* Slot template. Large tiles land on columns 1, 3, 2, 1 going down, so they read
-   as scattered rather than as a staircase. The gap beside About me is deliberate:
-   it stops About reading as the seventh app. */
+   as scattered rather than as a staircase. Eleven apps plus About fill the four
+   columns exactly, with no hole. */
 const SLOTS = [
   { t:'lg', col:'1 / 3', row:1 }, { t:'sm', col:'3 / 4', row:1 }, { t:'sm', col:'4 / 5', row:1 },
   { t:'sm', col:'1 / 2', row:2 }, { t:'sm', col:'2 / 3', row:2 }, { t:'lg', col:'3 / 5', row:2 },
   { t:'sm', col:'1 / 2', row:3 }, { t:'lg', col:'2 / 4', row:3 }, { t:'sm', col:'4 / 5', row:3 },
-  { t:'lg', col:'1 / 3', row:4 }
+  { t:'lg', col:'1 / 3', row:4 }, { t:'sm', col:'3 / 4', row:4 }
 ];
 const shuffle = a => { a=a.slice();
   for (let i=a.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [a[i],a[j]]=[a[j],a[i]]; }

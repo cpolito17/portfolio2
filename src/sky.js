@@ -152,12 +152,14 @@ function landMass(u, v){                 // coarse blobs -> continents vs ocean
   return s;
 }
 
+let CITY = [];   // twinkling city lights, collected by buildBackdrop
 const cv = document.getElementById('sky');
 const ctx = cv.getContext('2d', { alpha:false });
 let W=0, H=0, SCALE=1, CX=0, CY=0, backdrop=null;
 
 function buildBackdrop(){
   const img = ctx.createImageData(W, H), px = img.data;
+  CITY = [];
   const R = LIMB_R*W, gw = GLOW_W*W;
   const cxE = CX, cyE = LIMB_TOP*H + R;          // limb centre sits far below frame
   for (let py=0; py<H; py++){
@@ -176,6 +178,8 @@ function buildBackdrop(){
           if (r > 0.972 - 0.012*Math.min(1, depth*1.4)){
             const warm = r > 0.9975;
             c = warm ? [226,186,128] : [150,116,72];
+            // seeded phase so a light keeps its rhythm across rebuilds
+            if (CITY.length < 1400) CITY.push({ x:pxi, y:py, c, ph: r*Math.PI*2000 % (Math.PI*2) });
           }
         }
       } else if (dE < R + gw){                      // ── atmosphere
@@ -218,15 +222,29 @@ function resize(){
 
 /* ═══ 5. Satellites - great-circle paths, arced by the projection ═══ */
 const sats = [];
+const lead_max = 1.9;   // retire a pass once it has crossed the field
+const norm = v => { const m = Math.hypot(v[0],v[1],v[2]); return [v[0]/m, v[1]/m, v[2]/m]; };
+const cross = (p,q) => [p[1]*q[2]-p[2]*q[1], p[2]*q[0]-p[0]*q[2], p[0]*q[1]-p[1]*q[0]];
+
+/* A satellite still travels a real great circle. The circle is just constructed to
+   pass through a point inside the visible cone, so passes are actually seen rather
+   than happening mostly behind the viewer. */
 function spawnSat(){
-  const th = Math.random()*Math.PI*2, ph = Math.acos(2*Math.random()-1);
-  const pole = [Math.sin(ph)*Math.cos(th), Math.sin(ph)*Math.sin(th), Math.cos(ph)];
-  let u = Math.abs(pole[2]) < 0.9 ? [0,0,1] : [1,0,0];
-  let a = [ pole[1]*u[2]-pole[2]*u[1], pole[2]*u[0]-pole[0]*u[2], pole[0]*u[1]-pole[1]*u[0] ];
-  const am = Math.hypot(...a); a = a.map(v=>v/am);
-  const b = [ pole[1]*a[2]-pole[2]*a[1], pole[2]*a[0]-pole[0]*a[2], pole[0]*a[1]-pole[1]*a[0] ];
-  sats.push({ a, b, t: Math.random()*Math.PI*2, sp: 0.05 + Math.random()*0.05, life: 0,
-              max: 150 + Math.random()*120, trail: [] });
+  const rr = Math.sqrt(Math.random())*HALF_FOV*0.8, aa = Math.random()*Math.PI*2;
+  const through = norm([                                  // a point inside the field
+    F[0] + (RIGHT[0]*Math.cos(aa) + UP[0]*Math.sin(aa))*Math.tan(rr),
+    F[1] + (RIGHT[1]*Math.cos(aa) + UP[1]*Math.sin(aa))*Math.tan(rr),
+    F[2] + (RIGHT[2]*Math.cos(aa) + UP[2]*Math.sin(aa))*Math.tan(rr)
+  ]);
+  const heading = Math.random()*Math.PI*2;                // tangent at that point
+  let e1 = norm(cross(through, Math.abs(through[2]) < 0.9 ? [0,0,1] : [1,0,0]));
+  const e2 = cross(through, e1);
+  const b = [ e1[0]*Math.cos(heading)+e2[0]*Math.sin(heading),
+              e1[1]*Math.cos(heading)+e2[1]*Math.sin(heading),
+              e1[2]*Math.cos(heading)+e2[2]*Math.sin(heading) ];
+  const lead = 0.5 + Math.random()*0.5;                   // start off-frame, fly through
+  sats.push({ a: through, b, t: -lead, sp: 0.035 + Math.random()*0.045, life: 0,
+              max: 900, trail: [] });
 }
 
 /* ═══ 6. Render ═════════════════════════════════════════════ */
@@ -244,6 +262,18 @@ function recomputeSky(){
     const [alt, az] = altazOf(ra, dec, lstDeg, HOME.lat);
     return { name:n, alt, az, dir: dirOf(alt, az) };
   });
+}
+
+/* City lights flicker slowly and out of phase. Cheap: the backdrop already holds
+   them at full strength, so this only repaints the ones that are currently dimmed. */
+function drawCity(now){
+  for (let i=0;i<CITY.length;i++){
+    const L = CITY[i];
+    const k = 0.55 + 0.45*Math.sin(now*0.0016 + L.ph);
+    if (k > 0.94) continue;                       // already correct in the backdrop
+    ctx.fillStyle = `rgb(${(L.c[0]*k)|0},${(L.c[1]*k)|0},${(L.c[2]*k)|0})`;
+    ctx.fillRect(L.x, L.y, 1, 1);
+  }
 }
 
 function drawStars(now){
@@ -277,13 +307,15 @@ function drawBodies(){
     const sx = CX + p[0]*SCALE, sy = CY - p[1]*SCALE;
     if (sx < 2 || sy < 2 || sx > W-2 || sy > H-2) continue;
     if (occluded(sx, sy)) continue;
-    const big = b.name === 'Sun' ? 3 : (b.name==='Jupiter'||b.name==='Venus') ? 2 : 1;
+    const big = b.name === 'Sun' ? 5 : (b.name==='Jupiter'||b.name==='Venus') ? 3 : 2;
     ctx.fillStyle = b.name === 'Sun' ? '#ffe6a8' : '#ffd9a0';
     ctx.fillRect((sx-(big>>1))|0, (sy-(big>>1))|0, big, big);
-    if (big > 1){
-      ctx.fillStyle = 'rgba(255,217,160,.28)';
-      ctx.fillRect((sx-big)|0, sy|0, 1, 1); ctx.fillRect((sx+big-1)|0, sy|0, 1, 1);
-    }
+    ctx.fillStyle = 'rgba(255,217,160,.30)';          // soft cross, sized with the disc
+    const arm = big;
+    ctx.fillRect((sx-(big>>1)-arm)|0, sy|0, arm, 1);
+    ctx.fillRect((sx+(big>>1))|0,      sy|0, arm, 1);
+    ctx.fillRect(sx|0, (sy-(big>>1)-arm)|0, 1, arm);
+    ctx.fillRect(sx|0, (sy+(big>>1))|0,     1, arm);
     placed.push({ name:b.name, x: sx/W*VIEW_W, y: sy/H*VIEW_H });
   }
   layoutLabels(placed);
@@ -349,20 +381,19 @@ function drawSats(){
   for (let i=sats.length-1; i>=0; i--){
     const s = sats[i];
     s.t += s.sp*DEG; s.life++;
-    if (s.life > s.max){ sats.splice(i,1); continue; }
+    if (s.life > s.max || s.t > lead_max){ sats.splice(i,1); continue; }
     const c = Math.cos(s.t), sn = Math.sin(s.t);
     const v = [ s.a[0]*c + s.b[0]*sn, s.a[1]*c + s.b[1]*sn, s.a[2]*c + s.b[2]*sn ];
-    if (v[2] <= 0.02) { s.trail.length = 0; continue; }
     const p = project(v); if (!p){ s.trail.length = 0; continue; }
     const sx = CX + p[0]*SCALE, sy = CY - p[1]*SCALE;
-    s.trail.push([sx, sy]); if (s.trail.length > 7) s.trail.shift();
+    s.trail.push([sx, sy]); if (s.trail.length > 9) s.trail.shift();
     for (let k=0;k<s.trail.length;k++){
       const a = (k+1)/s.trail.length * 0.7;
       ctx.fillStyle = `rgba(226,236,255,${a})`;
       ctx.fillRect(s.trail[k][0]|0, s.trail[k][1]|0, 1, 1);
     }
   }
-  if (sats.length < 2 && Math.random() < 0.02) spawnSat();
+  if (sats.length < 5) spawnSat();          // keep something crossing the sky
 }
 
 /* 12fps: pixel art wants a chunky frame rate, and every glass tile re-blurs
@@ -376,5 +407,5 @@ function loop(now){
   lastFrame = now;
   if (now - lastSky > 30000 || !EARTH){ recomputeSky(); lastSky = now; }
   ctx.putImageData(backdrop, 0, 0);
-  drawStars(now); drawSats(); drawBodies();
+  drawCity(now); drawStars(now); drawSats(); drawBodies();
 }
