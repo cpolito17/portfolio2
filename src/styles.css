@@ -94,6 +94,10 @@ body{
 .tile.lg .tile-name{font-size:1.06rem}
 .tile.sm .tile-name{font-size:.85rem}
 .tile-desc{color:var(--ink-3);margin:0;line-height:1.45}
+/* A real gating condition, not decoration: say it on the tile so nobody
+   clicks through to a login they did not expect. */
+.tile-note{margin-top:.15rem;font-size:.68rem;letter-spacing:.06em;color:var(--accent);
+  opacity:.85}
 .tile.lg .tile-desc{font-size:.8rem}
 .tile.sm .tile-desc{font-size:.72rem}
 
