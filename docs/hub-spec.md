@@ -13,38 +13,44 @@ A working prototype of everything below lives in [`/prototype/index.html`](../pr
 | Decision | Choice |
 |---|---|
 | Sky data | **Real** — actual star catalogue + planetary ephemerides |
-| Framing | **Full-bleed barrel distortion**, not a circular sky disc |
+| Framing | **Inverted fisheye** — sky above, Earth's limb curving away below |
 | Sky clock | **Always night, current date** — real positions, locked to local midnight |
 | Sky motion | **12fps chunky**, matching the pixel-art medium |
-| Tile tiers | 4 large, 6 small, 1 About |
+| Tile tiers | 4 large, 6 small, 1 About me — large tiles dispersed, order shuffled per load |
 | Palette | Sky carries all colour; glass and type stay grayscale |
 
 ---
 
 ## 2. The grid
 
-Four columns. Large tiles span two, small tiles span one.
+Four columns. Large tiles span two. **Large tiles are dispersed across every row
+rather than stacked at the top**, and which app lands in which slot is shuffled on
+each load:
 
 ```
-┌─────────────────┬─────────────────┐
-│  Cairn      LG  │  Localize   LG  │
-├─────────────────┼─────────────────┤
-│  Apex       LG  │  Trajectory LG  │
-├────────┬────────┼────────┬────────┤
-│ HGHero │LiteEdit│  TTLW  │TaxHaven│
-├────────┼────────┼────────┼────────┤
-│PAYLOAD │ Keeran │        │ About  │
-└────────┴────────┴────────┴────────┘
+┌─────────────────┬────────┬────────┐
+│    LARGE        │ small  │ small  │
+├────────┬────────┴───────┬┴────────┤
+│ small  │    LARGE       │ small   │
+├────────┼────────┬───────┴─────────┤
+│ small  │ small  │     LARGE       │
+├────────┴────────┼────────┬────────┤
+│    LARGE        │        │About me│
+└─────────────────┴────────┴────────┘
 ```
 
-The empty cell before About is deliberate — it isolates the About tile in the
-bottom-right corner instead of letting it read as the seventh app.
+Slots are placed explicitly (`grid-column` / `grid-row`) rather than left to
+auto-placement, which cannot produce this pattern with mixed spans. The shuffle
+permutes apps *within* their tier, so the structure holds while the order changes.
 
-Breakpoints: 4 columns → 2 columns at 860px → 1 column at 520px.
+The empty cell before About me is deliberate — it stops About reading as the
+seventh app.
+
+Breakpoints: explicit placement is dropped below 860px (2 columns), then 1 column
+at 520px.
 
 **Both tiers are the same material.** Same `.liquid-glass`, same `rounded-3xl`,
-same 1.4px border. Only scale, padding, icon size, and type size differ — that is
-what makes emphasis read as emphasis rather than as two unrelated components.
+same 1.4px border. Only scale, padding, icon size, and type size differ.
 
 | | Large | Small |
 |---|---|---|
@@ -54,12 +60,11 @@ what makes emphasis read as emphasis rather than as two unrelated components.
 | Description | 0.8rem, `white/42` | 0.72rem, clamped to 3 lines |
 | Hover / active | `scale(1.02)` / `scale(0.98)` | `scale(1.05)` / `scale(0.95)` |
 
-The gentler scale on large tiles is deliberate: 5% on a half-width card is
-distracting. Both come from the transferred system.
+**About me** carries a dashed accent rim over a faint warm tint — same material,
+distinct border. Its title is set larger (1.25rem/600) and it carries no
+description; the name is the whole message.
 
 **Tiles are `<a href>`, not `<button>`** — they route out to real apps.
-
----
 
 ## 3. Tile copy
 
@@ -97,29 +102,35 @@ hit simulate, and find out what you did to the country.
 **PAYLOAD** — A 2D space-mining roguelite. Drill, haul, and survive the launch back to
 orbit — every sprite drawn in code.
 
-**Keeran Cross** — An architecture portfolio built for a client, in full Frutiger Aero
-— cursor-reactive bubbles, animated waves, a Windows 98 cursor.
+**Architecture Portfolio** — An architecture portfolio I built for my girlfriend, in
+full Frutiger Aero — cursor-reactive bubbles, animated waves, a Windows 98 cursor.
 
-### Routing — unresolved
+### Routing
 
-| App | Target | Status |
-|---|---|---|
-| Apex | `charliepolito.com/apex` | live |
-| Trajectory | `charliepolito.com/trajectory` | live (also `/compass`) |
-| Tax Haven | `charliepolito.com/taxhaven` | live |
-| LiteEdit | `liteedit.charliepolito.com` | live |
-| Cairn | — | **needs a URL** |
-| HomeGameHero | — | **needs a URL** (static, trivial to deploy) |
-| PAYLOAD | — | **needs a URL** (static build) |
-| Keeran Cross | — | **needs a URL** (client-hosted?) |
-| Localize | — | **blocked** — FastAPI + Google Maps keys, needs a host |
-| Take the Long Way | — | **blocked** — FastAPI + ORS key + 50k-row SQLite |
+| App | Target |
+|---|---|
+| Cairn | `tasks.charliepolito.com` |
+| Localize | `charliepolito.com/localize` |
+| Apex | `charliepolito.com/apex` |
+| Trajectory | `charliepolito.com/trajectory` |
+| HomeGameHero | `charliepolito.com/homegame` |
+| LiteEdit | `liteedit.charliepolito.com` |
+| Take the Long Way | `charliepolito.com/takethelongway` |
+| Tax Haven | `charliepolito.com/taxhaven` |
+| PAYLOAD | `charliepolito.com/payload` |
+| Architecture Portfolio | `keerancross.com` |
 
-Localize and TTLW are Docker services with backends and API keys. They cannot be
-static Cloudflare deploys, so a hub tile pointing at them needs somewhere for them to
-actually live first. Until then those two tiles have no destination.
+**Cairn demo route — needs work on the Cairn side.** The hub can point at any URL,
+so linking a demo is trivial here. But Cairn is auth-gated: it has server-side
+sessions and a log-out action, so `tasks.charliepolito.com` will bounce a visitor
+to a login screen. A demo needs a route in *Cairn* that skips auth and serves a
+seeded, read-only board — something like `/demo` with fixture data and writes
+disabled. Until that exists the tile points at the root. Everything else about the
+hub is unaffected.
 
----
+Note that Localize and Take the Long Way are Docker services with backends and API
+keys (Google Places, OpenRouteService), so those two paths need something running
+behind them rather than static assets.
 
 ## 4. Pixel icons
 
@@ -138,15 +149,15 @@ are unmistakably one set.
 |---|---|
 | Cairn | three balanced stacked stones |
 | Localize | storefront with a striped awning |
-| Apex | serpentine ribbon of road |
-| Trajectory | rising line with an arrowhead over a baseline |
-| HomeGameHero | poker chip, edge notches |
+| Apex | serpentine road, rasterised from a sine so the curve cannot break |
+| Trajectory | rising line with the arrowhead centred on the line axis |
+| HomeGameHero | poker chip — eight rim spots are what stop it reading as a donut |
 | LiteEdit | framed photo — sun and mountain |
 | Take the Long Way | road running to the horizon, dashed centre line |
 | Tax Haven | capitol dome over columns |
-| PAYLOAD | ore crystal |
-| Keeran Cross | building elevation with windows |
-| About | portrait bust |
+| PAYLOAD | drill bit — collar, fluted shank, tapered point |
+| Architecture Portfolio | building elevation with windows |
+| About me | portrait bust |
 
 Stored as 16-row strings and expanded to SVG `<rect>`s at render time with
 `shape-rendering="crispEdges"`. No image files, no sprite sheet, scales cleanly.
@@ -187,35 +198,53 @@ season correctly.
 **Star tint** comes from spectral class (O B A F G K M) — blue-white through orange.
 Subtle, but it is what keeps the field from looking like scattered white dots.
 
-### 5.2 Projection — the fisheye is free
+### 5.2 Projection — an inverted fisheye
 
-Stereographic, `r ∝ tan(θ/2)`, at a 144° field. An all-sky view *is* a fisheye
-projection, which means:
+Stereographic, `r ∝ tan(θ/2)`, at a 140° field, view fixed on azimuth 178° at
+altitude 38° — so the top of the frame lands near the zenith and the bottom just
+under the horizon.
 
-- The barrel distortion is not an effect applied on top — it is the projection.
-- Satellites travel real great circles. **The arcs are not faked**; a straight path
-  across the sky renders as a curve because the projection is correct.
-- The horizon becomes a curve, which is the single most recognisable thing about the
-  whole image.
+The fisheye is **inverted** relative to a ground observer. Standing on the ground,
+the horizon wraps *up* around you at the frame edges — a bowl. The reference is the
+view from orbit, where the limb is convex: highest in the middle, falling away at
+both edges.
 
-View is fixed: azimuth 178° (south), altitude 46°, so the horizon curve sits low in
-frame with open sky above for the callouts.
+That shape cannot be derived from a ground observer's horizon, so the planet is
+drawn explicitly: a circle of radius 2.35× the canvas width, its top edge crossing
+at 74% of frame height. Everything inside is Earth, a thin band outside is
+atmosphere, and the rest is sky.
+
+**This stays physically coherent.** The stars and planets are still the real sky
+over `HOME`; the Earth below is the body you are above. From just outside the
+atmosphere the star positions are identical to ground level — parallax is far under
+a pixel — so both halves of the image describe the same place at the same moment.
+
+Satellites still travel real great circles, and their paths still arc because the
+projection is correct rather than because an arc was drawn.
+
+Anything the planet covers is occluded — stars, planets, and satellite trails alike.
 
 ### 5.3 Dithering
 
-Bayer 8×8 ordered dither over a six-step indigo ramp:
+Bayer 8×8 ordered dither over three ramps:
 
 ```
-#05060d  #0a0d18  #101529  #18203c  #212c52  #2b3868
+sky         #05060d  #0a0d18  #101529  #18203c  #212c52  #2b3868
+atmosphere  #cfe2ff  #8fb8ee  #5a86c8  #38578f  #253a63
+earth       #0c162c  #080f20  #050a16  #03060e
 ```
 
-Brightness falls from the horizon toward the zenith on a 1.7 power curve — airglow,
-roughly. Ground below the horizon gets a two-step near-black ramp.
+The atmospheric band is deliberately thin (3.4% of canvas width) with a fast
+falloff — a wide one washes out the whole lower frame and kills text contrast on
+any tile sitting over it.
 
-Rendered to a low-resolution buffer (~450px wide) and upscaled with
-`image-rendering: pixelated`. **The dithered gradient is computed once**, not per
-frame — the view is fixed, so only stars, planets, and satellites redraw. This is
-what keeps the whole thing nearly free.
+City lights scatter on a coarse noise field standing in for continents, thinning
+toward the limb. They are deterministic per pixel so they never shimmer between
+frames. Density is tuned low on purpose: enough to read as inhabited, sparse enough
+not to compete with the tiles or the footer.
+
+The whole backdrop is computed **once**, not per frame — the view is fixed, so only
+stars, planets and satellites redraw.
 
 ### 5.4 Labels
 
@@ -293,10 +322,10 @@ Type: Poppins 400/500/600, Source Serif 4 italic for accents only — carried ov
 
 ## 8. Open questions
 
-1. **Deploy targets** for the six apps without URLs, and what to do about Localize and
-   Take the Long Way, which need real backends.
+1. **Hosting** for Localize and Take the Long Way, which need real backends behind
+   their paths rather than static assets.
 2. **Same tab or new tab?** Same-origin apps argue for same-tab; a hub argues for new.
 3. **A moon?** Not mentioned, but a night sky without one is a choice. Phase is easy —
    it's just elongation from the sun.
-4. **Keeran Cross is client work**, not one of your own apps. Does it belong in the
-   same grid, or does it want its own treatment?
+4. **Cairn's demo route** has to be built in Cairn before that tile is useful to a
+   visitor who isn't logged in.
