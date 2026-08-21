@@ -1,0 +1,546 @@
+<title>Orrery Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Source+Serif+4:ital,wght@1,400&display=swap">
+
+<style>
+/* ── Night-sky hub. Deliberately single-theme: the page IS a night sky, so it
+   commits to one visual world and paints every colour explicitly. ── */
+:root{
+  --ink:#ffffff;
+  --ink-2:rgba(255,255,255,.62);
+  --ink-3:rgba(255,255,255,.42);
+  --ground:#05060d;
+  --accent:#e8c170;              /* warm: icons + celestial labels only */
+  --radius:1.5rem;
+  --font:'Poppins',ui-sans-serif,system-ui,sans-serif;
+  --serif:'Source Serif 4',ui-serif,Georgia,serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--font);-webkit-font-smoothing:antialiased;
+  min-height:100vh;overflow-x:hidden;
+}
+
+/* ── Sky layers ───────────────────────────────────────────── */
+#sky{
+  position:fixed;inset:0;width:100%;height:100%;z-index:0;
+  image-rendering:pixelated;image-rendering:crisp-edges;
+  background:var(--ground);
+}
+#labels{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.lbl-line{fill:none;stroke:var(--accent);stroke-width:1;opacity:.55;
+  stroke-dasharray:1;stroke-dashoffset:1;animation:draw-lead .5s cubic-bezier(.65,0,.35,1) forwards}
+@keyframes draw-lead{to{stroke-dashoffset:0}}
+.lbl-text{fill:var(--accent);font-family:var(--font);font-size:9px;font-weight:500;
+  letter-spacing:.14em;text-transform:uppercase;opacity:0;animation:lbl-in .4s ease-out .35s forwards}
+.lbl-halo{fill:none;stroke:rgba(5,6,13,.85);stroke-width:3.5;stroke-linejoin:round;
+  font-family:var(--font);font-size:9px;font-weight:500;letter-spacing:.14em;
+  text-transform:uppercase;opacity:0;animation:lbl-in .4s ease-out .35s forwards}
+@keyframes lbl-in{to{opacity:1}}
+
+/* ── Liquid glass (ported verbatim from the previous portfolio) ── */
+.glass{
+  border:1.4px solid transparent;
+  background:
+    linear-gradient(rgba(255,255,255,.04),rgba(255,255,255,.04)) padding-box,
+    linear-gradient(180deg,
+      rgba(255,255,255,.45) 0%, rgba(255,255,255,.15) 20%,
+      transparent 40%, transparent 60%,
+      rgba(255,255,255,.15) 80%, rgba(255,255,255,.45) 100%) border-box;
+  -webkit-backdrop-filter:blur(16px) saturate(150%);
+  backdrop-filter:blur(16px) saturate(150%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.1);
+  position:relative;overflow:hidden;
+}
+.glass::after{
+  content:'';position:absolute;inset:-60%;pointer-events:none;
+  background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.07) 50%,transparent 58%);
+  animation:glass-sheen 10s cubic-bezier(.45,0,.55,1) infinite alternate;
+}
+@keyframes glass-sheen{from{transform:translateX(-18%)}to{transform:translateX(18%)}}
+
+/* ── Shell ────────────────────────────────────────────────── */
+.shell{position:relative;z-index:2;max-width:1180px;margin:0 auto;
+  padding:clamp(1.5rem,4vw,3rem) clamp(1rem,3vw,2rem) 3rem;
+  min-height:100vh;display:flex;flex-direction:column;gap:clamp(1.5rem,4vw,2.75rem)}
+.masthead{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.wordmark{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:600;letter-spacing:-.045em;margin:0}
+.tagline{font-size:.8rem;color:var(--ink-3);letter-spacing:.02em;margin:0}
+.tagline em{font-family:var(--serif);font-style:italic;color:var(--ink-2)}
+
+/* ── Tile grid ────────────────────────────────────────────── */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(.7rem,1.5vw,1rem);
+  flex:1;align-content:start}
+.tile{
+  border-radius:var(--radius);text-decoration:none;color:inherit;display:flex;
+  transition:transform .18s cubic-bezier(.22,1,.36,1);cursor:pointer;
+}
+.tile:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.tile-inner{display:flex;gap:.85rem;align-items:flex-start;width:100%;position:relative;z-index:1}
+
+.tile.lg{grid-column:span 2;padding:clamp(1.1rem,2.2vw,1.5rem)}
+.tile.lg:hover{transform:scale(1.02)}
+.tile.lg:active{transform:scale(.98)}
+.tile.sm{grid-column:span 1;padding:clamp(.85rem,1.8vw,1.1rem)}
+.tile.sm:hover{transform:scale(1.05)}
+.tile.sm:active{transform:scale(.95)}
+
+.icon-well{border-radius:999px;background:rgba(255,255,255,.1);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center}
+.tile.lg .icon-well{width:48px;height:48px}
+.tile.sm .icon-well{width:34px;height:34px}
+.icon-well svg{display:block;image-rendering:pixelated}
+.tile.lg .icon-well svg{width:32px;height:32px}
+.tile.sm .icon-well svg{width:22px;height:22px}
+
+.tile-copy{min-width:0;display:flex;flex-direction:column;gap:.3rem}
+.tile-name{font-weight:500;letter-spacing:-.015em;margin:0;line-height:1.2}
+.tile.lg .tile-name{font-size:1.06rem}
+.tile.sm .tile-name{font-size:.85rem}
+.tile-desc{color:var(--ink-3);margin:0;line-height:1.45}
+.tile.lg .tile-desc{font-size:.8rem}
+.tile.sm .tile-desc{font-size:.72rem;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+/* About: same material, distinct border — a dashed accent rim, not a new surface */
+.tile.about{
+  grid-column:4;
+  border:1.4px dashed rgba(232,193,112,.55);
+  background:linear-gradient(rgba(232,193,112,.05),rgba(232,193,112,.05)) padding-box;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.1);
+}
+.tile.about .icon-well{background:rgba(232,193,112,.16)}
+.tile.about .tile-name{color:var(--accent)}
+
+.footnote{font-size:.68rem;color:var(--ink-3);letter-spacing:.16em;text-transform:uppercase;
+  text-align:center;margin:0}
+.footnote b{color:var(--ink-2);font-weight:500}
+
+@media (max-width:860px){
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .tile.lg{grid-column:span 2}
+  .tile.about{grid-column:2}
+}
+@media (max-width:520px){
+  .grid{grid-template-columns:1fr}
+  .tile.lg,.tile.sm,.tile.about{grid-column:span 1}
+  .tile.sm .tile-desc{-webkit-line-clamp:2}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important}
+  .lbl-line{stroke-dashoffset:0}
+  .lbl-text,.lbl-halo{opacity:1}
+}
+</style>
+
+<canvas id="sky" aria-hidden="true"></canvas>
+<svg id="labels" aria-hidden="true"></svg>
+
+<div class="shell">
+  <header class="masthead">
+    <h1 class="wordmark">Charlie Polito</h1>
+    <p class="tagline">Modern tools for <em>niche problems</em></p>
+  </header>
+  <nav class="grid" id="grid" aria-label="Applications"></nav>
+  <p class="footnote">Sky rendered for <b id="stamp">tonight</b> — real stars, real planets</p>
+</div>
+
+<script>
+const ICONS = /*__ICONS__*/{};
+const STARS_RAW = "/*__STARS__*/";
+
+/* ═══ 1. Astronomy ══════════════════════════════════════════
+   Everything here is standard spherical astronomy + the JPL low-precision
+   Keplerian element set. Accuracy is arcminutes; one pixel of this sky is
+   roughly half a degree, so we are ~50x more accurate than the display. */
+const DEG = Math.PI/180;
+const HOME = { lat: 42.2808, lon: -83.7430 };   // deliberately unnamed on the page
+
+function skyMoment(){                            // always night, current date
+  const n = new Date();
+  return Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate(), 5, 0, 0);
+}
+const toJD = ms => ms/86400000 + 2440587.5;
+
+function gmstDeg(jd){
+  const d = jd - 2451545.0, T = d/36525;
+  let g = 280.46061837 + 360.98564736629*d + 0.000387933*T*T - T*T*T/38710000;
+  return ((g % 360) + 360) % 360;
+}
+function altazOf(raDeg, decDeg, lstDeg, latDeg){
+  const H = (lstDeg - raDeg)*DEG, d = decDeg*DEG, p = latDeg*DEG;
+  const sd=Math.sin(d), cd=Math.cos(d), sp=Math.sin(p), cp=Math.cos(p), cH=Math.cos(H);
+  const alt = Math.asin(sd*sp + cd*cp*cH);
+  const az  = Math.atan2(-Math.sin(H)*cd, sd*cp - cd*sp*cH);
+  return [alt, az];
+}
+const dirOf = (alt, az) => { const c=Math.cos(alt); return [c*Math.sin(az), c*Math.cos(az), Math.sin(alt)]; };
+
+/* JPL approximate elements, valid 1800-2050.
+   [a,e,I,L,wbar,Omega, then per-century rates] */
+const ELEM = {
+  Mercury:[0.38709927,0.20563593,7.00497902,252.25032350,77.45779628,48.33076593,
+           0.00000037,0.00001906,-0.00594749,149472.67411175,0.16047689,-0.12534081],
+  Venus:  [0.72333566,0.00677672,3.39467605,181.97909950,131.60246718,76.67984255,
+           0.00000390,-0.00004107,-0.00078890,58517.81538729,0.00268329,-0.27769418],
+  Earth:  [1.00000261,0.01671123,-0.00001531,100.46457166,102.93768193,0.0,
+           0.00000562,-0.00004392,-0.01294668,35999.37244981,0.32327364,0.0],
+  Mars:   [1.52371034,0.09339410,1.84969142,-4.55343205,-23.94362959,49.55953891,
+           0.00001847,0.00007882,-0.00813131,19140.30268499,0.44441088,-0.29257343],
+  Jupiter:[5.20288700,0.04838624,1.30439695,34.39644051,14.72847983,100.47390909,
+           -0.00011607,-0.00013253,-0.00183714,3034.74612775,0.21252668,0.20469106],
+  Saturn: [9.53667594,0.05386179,2.48599187,49.95424423,92.59887831,113.66242448,
+           -0.00125060,-0.00050991,0.00193609,1222.49362201,-0.41897216,-0.28867794],
+  Uranus: [19.18916464,0.04725744,0.77263783,313.23810451,170.95427630,74.01692503,
+           -0.00196176,-0.00004397,-0.00242939,428.48202785,0.40805281,0.04240589],
+  Neptune:[30.06992276,0.00859048,1.77004347,-55.12002969,44.96476227,131.78422574,
+           0.00026291,0.00005105,0.00035372,218.45945325,-0.32241464,-0.00508664]
+};
+function helio(name, T){
+  const E = ELEM[name];
+  const a=E[0]+E[6]*T, e=E[1]+E[7]*T, I=(E[2]+E[8]*T)*DEG;
+  const L=E[3]+E[9]*T, wb=E[4]+E[10]*T, Om=(E[5]+E[11]*T)*DEG;
+  const w = wb*DEG - Om;
+  let M = ((L - wb + 180) % 360 + 360) % 360 - 180; M *= DEG;
+  let Ecc = M + e*Math.sin(M);                    // Newton on Kepler's equation
+  for (let i=0;i<12;i++){
+    const dM = M - (Ecc - e*Math.sin(Ecc));
+    const dE = dM/(1 - e*Math.cos(Ecc));
+    Ecc += dE; if (Math.abs(dE) < 1e-12) break;
+  }
+  const xp = a*(Math.cos(Ecc)-e), yp = a*Math.sqrt(1-e*e)*Math.sin(Ecc);
+  const cw=Math.cos(w), sw=Math.sin(w), cO=Math.cos(Om), sO=Math.sin(Om),
+        cI=Math.cos(I), sI=Math.sin(I);
+  return [ (cw*cO - sw*sO*cI)*xp + (-sw*cO - cw*sO*cI)*yp,
+           (cw*sO + sw*cO*cI)*xp + (-sw*sO + cw*cO*cI)*yp,
+           (sw*sI)*xp + (cw*sI)*yp ];
+}
+const OBLIQ = 23.43928*DEG;
+function bodyRaDec(name, T, earth){
+  let g;
+  if (name === 'Sun') g = [-earth[0], -earth[1], -earth[2]];
+  else { const p = helio(name, T); g = [p[0]-earth[0], p[1]-earth[1], p[2]-earth[2]]; }
+  const xq = g[0],
+        yq = g[1]*Math.cos(OBLIQ) - g[2]*Math.sin(OBLIQ),
+        zq = g[1]*Math.sin(OBLIQ) + g[2]*Math.cos(OBLIQ);
+  const r = Math.hypot(xq, yq, zq);
+  return [ ((Math.atan2(yq,xq)/DEG)%360+360)%360, Math.asin(zq/r)/DEG ];
+}
+
+/* ═══ 2. Star catalogue ═════════════════════════════════════ */
+const SPEC_TINT = [                              // O B A F G K M
+  [200,214,255],[210,222,255],[236,241,255],[255,250,240],
+  [255,242,214],[255,222,180],[255,198,164]
+];
+const STARS = (() => {
+  const v = STARS_RAW.split(',');
+  const n = v.length/4, out = new Array(n);
+  for (let i=0;i<n;i++){
+    out[i] = { ra:+v[i*4]/100, dec:+v[i*4+1]/100, mag:+v[i*4+2]/10, cls:+v[i*4+3],
+               tw: Math.random()*Math.PI*2 };
+  }
+  return out;
+})();
+
+/* ═══ 3. Fisheye projection ═════════════════════════════════
+   Stereographic. An all-sky view IS a fisheye, so the barrel character and
+   the arcing of every path across the sky fall out of the projection being
+   correct — none of it is faked. */
+const VIEW_AZ = 178*DEG, VIEW_ALT = 46*DEG, HALF_FOV = 72*DEG;
+const F = dirOf(VIEW_ALT, VIEW_AZ);
+const RIGHT = (() => { const r=[F[1],-F[0],0], m=Math.hypot(r[0],r[1]); return [r[0]/m,r[1]/m,0]; })();
+const UP = [ RIGHT[1]*F[2]-RIGHT[2]*F[1], RIGHT[2]*F[0]-RIGHT[0]*F[2], RIGHT[0]*F[1]-RIGHT[1]*F[0] ];
+const RHO_EDGE = 2*Math.sin(HALF_FOV)/(1+Math.cos(HALF_FOV));
+
+function project(v){
+  const d = v[0]*F[0]+v[1]*F[1]+v[2]*F[2];
+  if (d < -0.35) return null;                    // behind the viewer
+  const k = 2/(1+d);
+  return [ k*(v[0]*RIGHT[0]+v[1]*RIGHT[1]+v[2]*RIGHT[2]),
+           k*(v[0]*UP[0]   +v[1]*UP[1]   +v[2]*UP[2]) ];
+}
+function unproject(x, y){                        // for the static sky gradient
+  const r2 = x*x+y*y, d = (4-r2)/(4+r2), s = 4/(4+r2);
+  return [ F[0]*d + RIGHT[0]*x*s + UP[0]*y*s,
+           F[1]*d + RIGHT[1]*x*s + UP[1]*y*s,
+           F[2]*d + RIGHT[2]*x*s + UP[2]*y*s ];
+}
+
+/* ═══ 4. Dithered sky ═══════════════════════════════════════ */
+const BAYER8 = (() => {
+  const m=[[0,32,8,40,2,34,10,42],[48,16,56,24,50,18,58,26],[12,44,4,36,14,46,6,38],
+           [60,28,52,20,62,30,54,22],[3,35,11,43,1,33,9,41],[51,19,59,27,49,17,57,25],
+           [15,47,7,39,13,45,5,37],[63,31,55,23,61,29,53,21]];
+  return m.map(r => r.map(v => (v+0.5)/64));
+})();
+const SKY_RAMP = [[5,6,13],[10,13,24],[16,21,41],[24,32,60],[33,44,82],[43,56,104]];
+const GROUND   = [[3,4,8],[6,8,14]];
+
+const cv = document.getElementById('sky');
+const ctx = cv.getContext('2d', { alpha:false });
+let W=0, H=0, SCALE=1, CX=0, CY=0, backdrop=null;
+
+function buildBackdrop(){
+  const img = ctx.createImageData(W, H), px = img.data;
+  for (let py=0; py<H; py++){
+    for (let pxi=0; pxi<W; pxi++){
+      const x = (pxi - CX)/SCALE, y = (CY - py)/SCALE;
+      const v = unproject(x, y);
+      const alt = Math.asin(Math.max(-1, Math.min(1, v[2])));
+      const t = BAYER8[py & 7][pxi & 7];
+      let c;
+      if (alt < 0){
+        const g = Math.min(1, -alt/(20*DEG));
+        c = GROUND[Math.min(1, Math.floor((1-g)*2 + t*0.9))] || GROUND[0];
+      } else {
+        // brightest just above the horizon, falling away toward the zenith
+        const b = Math.pow(Math.max(0, 1 - alt/(72*DEG)), 1.7);
+        const lvl = Math.min(SKY_RAMP.length-1, Math.floor(b*(SKY_RAMP.length-1) + t));
+        c = SKY_RAMP[lvl];
+      }
+      const o = (py*W + pxi)*4;
+      px[o]=c[0]; px[o+1]=c[1]; px[o+2]=c[2]; px[o+3]=255;
+    }
+  }
+  backdrop = img;
+}
+function resize(){
+  const vw = Math.max(1, window.innerWidth), vh = Math.max(1, window.innerHeight);
+  W = Math.min(560, Math.round(vw/3.2));
+  H = Math.max(1, Math.round(W * vh/vw));
+  cv.width = W; cv.height = H;
+  cv.style.width = vw+'px'; cv.style.height = vh+'px';
+  CX = W/2; CY = H/2;
+  SCALE = (W/2)/RHO_EDGE;
+  buildBackdrop();
+  svg.setAttribute('viewBox', `0 0 ${vw} ${vh}`);
+  VIEW_W = vw; VIEW_H = vh;
+}
+
+/* ═══ 5. Satellites — great-circle paths, arced by the projection ═══ */
+const sats = [];
+function spawnSat(){
+  const th = Math.random()*Math.PI*2, ph = Math.acos(2*Math.random()-1);
+  const pole = [Math.sin(ph)*Math.cos(th), Math.sin(ph)*Math.sin(th), Math.cos(ph)];
+  let u = Math.abs(pole[2]) < 0.9 ? [0,0,1] : [1,0,0];
+  let a = [ pole[1]*u[2]-pole[2]*u[1], pole[2]*u[0]-pole[0]*u[2], pole[0]*u[1]-pole[1]*u[0] ];
+  const am = Math.hypot(...a); a = a.map(v=>v/am);
+  const b = [ pole[1]*a[2]-pole[2]*a[1], pole[2]*a[0]-pole[0]*a[2], pole[0]*a[1]-pole[1]*a[0] ];
+  sats.push({ a, b, t: Math.random()*Math.PI*2, sp: 0.05 + Math.random()*0.05, life: 0,
+              max: 150 + Math.random()*120, trail: [] });
+}
+
+/* ═══ 6. Render ═════════════════════════════════════════════ */
+const svg = document.getElementById('labels');
+let VIEW_W = 0, VIEW_H = 0;
+let lstDeg = 0, T_CENT = 0, EARTH = null, bodies = [];
+
+function recomputeSky(){
+  const ms = skyMoment(), jd = toJD(ms);
+  T_CENT = (jd - 2451545.0)/36525;
+  lstDeg = (gmstDeg(jd) + HOME.lon + 360) % 360;
+  EARTH = helio('Earth', T_CENT);
+  bodies = ['Sun','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune'].map(n => {
+    const [ra, dec] = bodyRaDec(n, T_CENT, EARTH);
+    const [alt, az] = altazOf(ra, dec, lstDeg, HOME.lat);
+    return { name:n, alt, az, dir: dirOf(alt, az) };
+  });
+}
+
+function drawStars(now){
+  for (let i=0;i<STARS.length;i++){
+    const s = STARS[i];
+    const [alt, az] = altazOf(s.ra, s.dec, lstDeg, HOME.lat);
+    if (alt <= 0.5*DEG) continue;
+    const p = project(dirOf(alt, az)); if (!p) continue;
+    const sx = (CX + p[0]*SCALE) | 0, sy = (CY - p[1]*SCALE) | 0;
+    if (sx < 0 || sy < 0 || sx >= W || sy >= H) continue;
+    let b = Math.pow(Math.max(0, (5.7 - s.mag)/6.6), 1.1);
+    if (s.mag < 3.2) b *= 0.86 + 0.14*Math.sin(now*0.0022 + s.tw);   // twinkle
+    if (b < 0.035) continue;
+    const tint = SPEC_TINT[s.cls] || SPEC_TINT[2];
+    ctx.fillStyle = `rgba(${tint[0]},${tint[1]},${tint[2]},${Math.min(1,b)})`;
+    ctx.fillRect(sx, sy, 1, 1);
+    if (s.mag < 1.4){                                    // brightest get a cross
+      ctx.fillStyle = `rgba(${tint[0]},${tint[1]},${tint[2]},${Math.min(1,b)*0.4})`;
+      ctx.fillRect(sx-1, sy, 1, 1); ctx.fillRect(sx+1, sy, 1, 1);
+      ctx.fillRect(sx, sy-1, 1, 1); ctx.fillRect(sx, sy+1, 1, 1);
+    }
+  }
+}
+
+function drawBodies(){
+  const placed = [];
+  for (const b of bodies){
+    if (b.alt <= 1*DEG) continue;
+    const p = project(b.dir); if (!p) continue;
+    const sx = CX + p[0]*SCALE, sy = CY - p[1]*SCALE;
+    if (sx < 2 || sy < 2 || sx > W-2 || sy > H-2) continue;
+    const big = b.name === 'Sun' ? 3 : (b.name==='Jupiter'||b.name==='Venus') ? 2 : 1;
+    ctx.fillStyle = b.name === 'Sun' ? '#ffe6a8' : '#ffd9a0';
+    ctx.fillRect((sx-(big>>1))|0, (sy-(big>>1))|0, big, big);
+    if (big > 1){
+      ctx.fillStyle = 'rgba(255,217,160,.28)';
+      ctx.fillRect((sx-big)|0, sy|0, 1, 1); ctx.fillRect((sx+big-1)|0, sy|0, 1, 1);
+    }
+    placed.push({ name:b.name, x: sx/W*VIEW_W, y: sy/H*VIEW_H });
+  }
+  layoutLabels(placed);
+}
+
+/* Labels live in SVG, never in the pixel buffer — pixel-art text at this size
+   is unreadable, and the leader lines want crisp sub-pixel strokes. */
+let lastLabelKey = '';
+function layoutLabels(items){
+  const gridEl = document.getElementById('grid');
+  const gb = gridEl ? gridEl.getBoundingClientRect() : {left:0,right:VIEW_W};
+  const PAD = 14, MIN_MARGIN = 96;
+  const leftRoom = gb.left, rightRoom = VIEW_W - gb.right;
+  if (Math.max(leftRoom, rightRoom) < MIN_MARGIN){ svg.textContent=''; lastLabelKey=''; return; }
+
+  for (const it of items){
+    const useLeft = it.x < VIEW_W/2 ? leftRoom >= MIN_MARGIN : rightRoom < MIN_MARGIN;
+    it.side = useLeft ? -1 : 1;
+    it.lx = useLeft ? gb.left - PAD : gb.right + PAD;
+  }
+  // stack each side independently so callouts never collide
+  for (const side of [-1, 1]){
+    const col = items.filter(i => i.side === side).sort((a,b) => a.y - b.y);
+    let prev = -1e9;
+    for (const it of col){ it.ly = Math.max(it.y, prev + 16); prev = it.ly; }
+  }
+  const key = items.map(i => i.name + i.side).join('|');
+  if (key === lastLabelKey && svg.childNodes.length === items.length){
+    let i = 0;
+    for (const it of items){
+      const g = svg.childNodes[i++];
+      g.childNodes[0].setAttribute('d', leader(it));
+      for (const t of [g.childNodes[1], g.childNodes[2]]){
+        t.setAttribute('x', it.lx); t.setAttribute('y', it.ly + 3);
+        t.setAttribute('text-anchor', it.side < 0 ? 'end' : 'start');
+      }
+    }
+    return;
+  }
+  lastLabelKey = key;
+  svg.textContent = '';
+  for (const it of items){
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('class','lbl-line'); path.setAttribute('pathLength','1');
+    path.setAttribute('d', leader(it));
+    g.appendChild(path);
+    for (const cls of ['lbl-halo','lbl-text']){
+      const el = document.createElementNS('http://www.w3.org/2000/svg','text');
+      el.setAttribute('class', cls);
+      el.setAttribute('x', it.lx); el.setAttribute('y', it.ly + 3);
+      el.setAttribute('text-anchor', it.side < 0 ? 'end' : 'start');
+      el.textContent = it.name;
+      g.appendChild(el);
+    }
+    svg.appendChild(g);
+  }
+}
+const leader = it => { const e = it.lx + it.side*6, k = it.lx + it.side*20;
+  return `M ${it.x + it.side*4} ${it.y} L ${k} ${it.ly} L ${e} ${it.ly}`; };
+
+function drawSats(){
+  for (let i=sats.length-1; i>=0; i--){
+    const s = sats[i];
+    s.t += s.sp*DEG; s.life++;
+    if (s.life > s.max){ sats.splice(i,1); continue; }
+    const c = Math.cos(s.t), sn = Math.sin(s.t);
+    const v = [ s.a[0]*c + s.b[0]*sn, s.a[1]*c + s.b[1]*sn, s.a[2]*c + s.b[2]*sn ];
+    if (v[2] <= 0.02) { s.trail.length = 0; continue; }
+    const p = project(v); if (!p){ s.trail.length = 0; continue; }
+    const sx = CX + p[0]*SCALE, sy = CY - p[1]*SCALE;
+    s.trail.push([sx, sy]); if (s.trail.length > 7) s.trail.shift();
+    for (let k=0;k<s.trail.length;k++){
+      const a = (k+1)/s.trail.length * 0.7;
+      ctx.fillStyle = `rgba(226,236,255,${a})`;
+      ctx.fillRect(s.trail[k][0]|0, s.trail[k][1]|0, 1, 1);
+    }
+  }
+  if (sats.length < 2 && Math.random() < 0.02) spawnSat();
+}
+
+/* 12fps: pixel art wants a chunky frame rate, and every glass tile re-blurs
+   its backdrop on every frame the sky changes — so this is the main
+   performance lever, not a compromise. */
+const FRAME_MS = 1000/12;
+let lastFrame = 0, lastSky = 0;
+function loop(now){
+  requestAnimationFrame(loop);
+  if (now - lastFrame < FRAME_MS) return;
+  lastFrame = now;
+  if (now - lastSky > 30000 || !EARTH){ recomputeSky(); lastSky = now; }
+  ctx.putImageData(backdrop, 0, 0);
+  drawStars(now); drawSats(); drawBodies();
+}
+
+/* ═══ 7. Tiles ══════════════════════════════════════════════ */
+const PAL = { '1':'#E8EDF7','2':'#9AA6C4','3':'#4A5578','4':'#E8C170' };
+function iconSVG(name){
+  const rows = ICONS[name]; if (!rows) return '';
+  let r = '';
+  for (let y=0;y<16;y++) for (let x=0;x<16;x++){
+    const c = rows[y][x];
+    if (c === '.') continue;
+    r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${PAL[c]}"/>`;
+  }
+  return `<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+}
+const APPS = [
+  { id:'cairn', tier:'lg', name:'Cairn', url:'#',
+    desc:'A task manager with a real week attached. Drag work onto a planner grid, see what blocks what as a dependency graph, and keep personal and work life apart.' },
+  { id:'localize', tier:'lg', name:'Localize', url:'#',
+    desc:'Search a big-box brand and get the independent shops near you instead. Every result carries a transparent 0–100 score for how genuinely local it is.' },
+  { id:'apex', tier:'lg', name:'Apex', url:'https://charliepolito.com/apex',
+    desc:'Scans the road network around any address and ranks the roads worth driving. Mapped with per-corner curvature colouring, re-tunable without a re-scan.' },
+  { id:'trajectory', tier:'lg', name:'Trajectory', url:'https://charliepolito.com/trajectory',
+    desc:'Projects your net worth from today to age 100, with sixteen kinds of life event you can drop on the timeline. No accounts, and nothing leaves your browser.' },
+  { id:'homegamehero', tier:'sm', name:'HomeGameHero', url:'#',
+    desc:'Chip, blind, and payout math for home poker. Works offline and settles the night in the fewest possible payments.' },
+  { id:'liteedit', tier:'sm', name:'LiteEdit', url:'https://liteedit.charliepolito.com',
+    desc:'A photo editor that runs entirely in your browser. Layers, non-destructive transforms, full undo — no upload, no account.' },
+  { id:'ttlw', tier:'sm', name:'Take the Long Way', url:'#',
+    desc:'Plots a road trip through the roadside oddities and ghost towns along your route, then hands the whole thing to Google Maps.' },
+  { id:'taxhaven', tier:'sm', name:'Tax Haven', url:'https://charliepolito.com/taxhaven',
+    desc:"You're handed the US tax code and the federal budget. Redesign both, hit simulate, and find out what you did to the country." },
+  { id:'payload', tier:'sm', name:'PAYLOAD', url:'#',
+    desc:'A 2D space-mining roguelite. Drill, haul, and survive the launch back to orbit — every sprite drawn in code.' },
+  { id:'keeran', tier:'sm', name:'Keeran Cross', url:'#',
+    desc:'An architecture portfolio built for a client, in full Frutiger Aero — cursor-reactive bubbles, animated waves, a Windows 98 cursor.' }
+];
+const grid = document.getElementById('grid');
+grid.innerHTML = APPS.map(a => `
+  <a class="tile glass ${a.tier}" href="${a.url}"${a.url==='#'?' aria-disabled="true"':''}>
+    <span class="tile-inner">
+      <span class="icon-well">${iconSVG(a.id)}</span>
+      <span class="tile-copy">
+        <span class="tile-name">${a.name}</span>
+        <span class="tile-desc">${a.desc}</span>
+      </span>
+    </span>
+  </a>`).join('') + `
+  <a class="tile about sm" href="#about">
+    <span class="tile-inner">
+      <span class="icon-well">${iconSVG('cairn')}</span>
+      <span class="tile-copy">
+        <span class="tile-name">About</span>
+        <span class="tile-desc">Who built all this, and why.</span>
+      </span>
+    </span>
+  </a>`;
+
+document.getElementById('stamp').textContent =
+  new Date().toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'});
+
+window.addEventListener('resize', resize);
+resize(); recomputeSky();
+for (let i=0;i<2;i++) spawnSat();
+requestAnimationFrame(loop);
+</script>
