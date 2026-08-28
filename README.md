@@ -11,31 +11,84 @@ npm run dev       # build, then wrangler dev
 npm run deploy    # build, then wrangler deploy
 ```
 
-There are no dependencies. `build.mjs` is plain Node and `wrangler` is invoked
-through `npx`, so a clean checkout builds with nothing installed.
+`build.mjs` is plain Node and `wrangler` is invoked through `npx`, so a clean
+checkout builds and deploys with nothing installed. The one dependency,
+Playwright, is only used by `shots.mjs` and `audit.mjs`, neither of which the
+build or the deploy touches.
 
 ## Layout
 
 ```
 src/
-  index.html    hub page shell
-  about.html    about page shell
-  styles.css    shared, including the liquid glass surfaces
-  sky.js        astronomy, projection, and the dithered renderer
-  hub.js        tile data and grid placement
-  about.js      staggered entrance for the resume
-  nav.js        page transitions
+  core/         shared by every variant
+    apps.js     the app catalogue: copy, URLs, icons. No markup.
+    sky.js      astronomy, projection, and the dithered renderer
+    nav.js      page transitions
+    base.css    tokens, sky layers, liquid glass, page transitions
+    about.js    staggered entrance for the resume
+    about.css   the resume's own styles
+  variants/     one directory per frontend
+    <name>/
+      variant.json   which core and local files this variant wants
+      index.html     its hub shell
+      styles.css     its layout
+      hub.js         its behaviour
+      sky.config.js  optional: its window.SKY_OPTS
+  about.html    about page shell, shared by every variant
+  compare.html  the review picker
   data/
     stars.txt   2,887 stars to magnitude 5.5, from the Yale Bright Star Catalogue
     icons.json  16x16 pixel icons, one per app
 build.mjs       inlines everything into dist/
+shots.mjs       renders every variant at 1440, 820 and 390 into shots/
 dist/           built output, gitignored
 ```
 
-Every page inlines its own CSS and JS. The whole site is under 100KB, so inlining
-removes every render-blocking request and makes each page a single cacheable file.
-`dist/preview.html` is the hub with the document wrapper stripped, for embedding in
-hosts that supply their own skeleton. The Worker does not serve it.
+Every page inlines only the CSS and JS it actually uses. The whole site is under
+100KB, so inlining removes every render-blocking request and makes each page a
+single cacheable file. `dist/preview.html` is the hub with the document wrapper
+stripped, for embedding in hosts that supply their own skeleton. The Worker does
+not serve it.
+
+## Variants
+
+The hub exists in several frontends over one content source. `src/core/apps.js`
+holds the app copy, URLs and icons; `src/core/sky.js` holds the astronomy and the
+renderer. A variant supplies only layout, behaviour, and optionally a set of sky
+render options. None of them can drift on content, because none of them own any.
+
+| | |
+|---|---|
+| `current` | What is live: dithered night sky, liquid-glass tiles, 4-column mixed-span grid |
+| `a` | **Observatory** — hairline index and a readout, over an uncut sky |
+| `b` | **Press** — no canvas, no glass: paper, rules, and a numbered editorial index |
+| `c` | **Dissolve** — panels made of dither, edges breaking up into the sky |
+| `d` | **Orbit** — looking down on the ecliptic; apps share the inner planets' orbits |
+| `e` | **Constellation** — apps as stars at real altitudes, joined into one figure |
+
+`current` builds to `dist/index.html` and is what deploys. The rest build to
+`dist/<name>/index.html` and are claimed by no route in `wrangler.jsonc`, so they
+exist for review only. To review them, `npm run build` and open `dist/compare.html`,
+which frames every variant side by side at three viewport widths. `node shots.mjs`
+renders them all to `shots/` instead.
+
+The About page is shared and unchanged across every variant, so the hand-off from a
+variant into About does not match it. That is expected while the hubs are under
+review.
+
+To change which variant deploys, set `CURRENT` in `build.mjs`.
+
+### Sky render options
+
+`sky.js` fixes the astronomy and opens up the rendering. A variant sets
+`window.SKY_OPTS` before the engine runs to change framing (`viewAlt`, `viewAz`,
+`halfFov`), the ordered-dither matrix size and its coarsening with distance
+(`bayer`, `ditherDepth`), the three colour ramps, the Earth limb (`limb`, or `null`
+for no Earth at all), how the planets draw (`planets: 'dot' | 'disc' | 'off'`),
+the callout anchor, star brightness, satellite count, frame rate and buffer size.
+
+Every default is the value the engine used when it had a single caller, so an empty
+`SKY_OPTS` is a no-op and `current` renders exactly as it always did.
 
 ## Deploying
 

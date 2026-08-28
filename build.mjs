@@ -53,8 +53,11 @@ rmSync(url('./dist'), { recursive: true, force: true });
 mkdirSync(url('./dist'), { recursive: true });
 
 /* ── Variants ─────────────────────────────────────────────── */
+/* CURRENT leads: the review reads as "here is what is live, here are the
+   alternatives", not as an alphabetical list with the baseline buried in it. */
 const names = readdirSync(url('./src/variants'), { withFileTypes: true })
-  .filter(d => d.isDirectory()).map(d => d.name).sort();
+  .filter(d => d.isDirectory()).map(d => d.name).sort()
+  .sort((a, b) => (a === CURRENT ? -1 : b === CURRENT ? 1 : 0));
 
 const built = [];
 for (const name of names){

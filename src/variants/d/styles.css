@@ -53,6 +53,7 @@
              background-color .2s ease-out;
 }
 .node-dot svg{width:20px;height:20px;display:block;image-rendering:pixelated}
+.node-desc{display:none;font-size:.74rem;line-height:1.45;color:var(--ink-3);margin-top:.15rem}
 .node-name{position:absolute;top:calc(100% + .35rem);left:50%;
   transform:translateX(-50%);width:7.5rem;
   font-size:.66rem;line-height:1.25;text-align:center;
@@ -81,6 +82,9 @@
 
 /* ── Below 900px the plot is unreadable, so it becomes a list ── */
 @media (max-width:900px){
+  /* As a list the page is reading, not looking, and the limb runs straight
+     through the middle of it. The sky stays visible but stops competing. */
+  .chart{background:linear-gradient(180deg,rgba(5,6,13,.80),rgba(5,6,13,.90))}
   .chart{grid-template-rows:auto auto auto;gap:1.5rem}
   .plot{min-height:0}
   .plot-bg,.plot-arcs{display:none}
@@ -95,9 +99,8 @@
   .node[data-on="true"] .node-dot{transform:none}
   .panel{display:none}
   /* The readout has nowhere to go in a list, so each row carries its own copy. */
-  .node-desc{display:block;font-size:.74rem;line-height:1.45;color:var(--ink-3);margin-top:.15rem}
+  .node-desc{display:block}
 }
-.node-desc{display:none}
 
 @media (prefers-reduced-motion:reduce){
   .node,.node-dot,.node-name{transition:none}

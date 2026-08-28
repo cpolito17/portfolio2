@@ -1,0 +1,102 @@
+/* ── E · Constellation ─────────────────────────────────────
+   The apps stop sitting on the sky and become part of it. Each one is a star at
+   a real altitude and azimuth, joined to its neighbours into a single figure,
+   and selecting one draws a leader out to a readout using the same callout the
+   engine already uses for the planets.
+
+   There is no card, no plate and no glass anywhere on this page. The only
+   surfaces are a line, a point of light, and type. ── */
+
+.field{position:relative;z-index:2;min-height:100vh;
+  padding:clamp(1.5rem,3.5vw,2.5rem)}
+
+.head{max-width:26rem}
+.wordmark{font-size:clamp(1.3rem,2.8vw,1.7rem);font-weight:600;letter-spacing:-.045em;margin:0}
+.head-sub{margin:.35rem 0 0;font-size:.78rem;line-height:1.55;color:var(--ink-3)}
+
+.about{position:absolute;top:clamp(1.5rem,3.5vw,2.5rem);right:clamp(1.5rem,3.5vw,2.5rem);
+  font-size:.8rem;color:var(--accent);text-decoration:none;
+  border-bottom:1px dashed rgba(232,193,112,.5);padding-bottom:.15rem;z-index:4}
+.about:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* ── The figure ───────────────────────────────────────────── */
+.lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.seg{stroke:rgba(180,200,240,.22);stroke-width:1;fill:none;
+  transition:stroke .22s ease-out,stroke-width .22s ease-out}
+.seg[data-on="true"]{stroke:rgba(232,193,112,.75);stroke-width:1.4}
+
+.stars{position:absolute;inset:0;list-style:none;margin:0;padding:0;z-index:2}
+.star{
+  position:absolute;transform:translate(-50%,-50%);
+  width:26px;height:26px;display:grid;place-items:center;
+  text-decoration:none;color:inherit;
+}
+/* The mark is drawn, not typeset: a four-point flare, the same shape the engine
+   gives its brightest catalogue stars. */
+.star-mark{position:relative;width:9px;height:9px;display:block}
+.star-mark::before,.star-mark::after{content:'';position:absolute;background:#fff;
+  transition:background-color .2s ease-out,box-shadow .2s ease-out,transform .2s cubic-bezier(.22,1,.36,1)}
+.star-mark::before{left:50%;top:0;width:1px;height:100%;transform:translateX(-50%)}
+.star-mark::after{top:50%;left:0;height:1px;width:100%;transform:translateY(-50%)}
+.star-core{position:absolute;inset:3px;background:#fff;border-radius:1px;
+  box-shadow:0 0 6px rgba(214,230,255,.85);
+  transition:box-shadow .2s ease-out,background-color .2s ease-out,transform .2s cubic-bezier(.22,1,.36,1)}
+.star-name{position:absolute;top:calc(100% + .1rem);left:50%;transform:translateX(-50%);
+  width:8.5rem;text-align:center;font-size:.66rem;line-height:1.25;color:var(--ink-3);
+  text-shadow:0 1px 4px rgba(5,6,13,.95),0 0 8px rgba(5,6,13,.8);
+  transition:color .2s ease-out}
+.star[data-on="true"] .star-core{background:var(--accent);transform:scale(1.5);
+  box-shadow:0 0 14px rgba(232,193,112,.9)}
+.star[data-on="true"] .star-mark::before,
+.star[data-on="true"] .star-mark::after{background:var(--accent);transform:scale(1.7)}
+.star[data-on="true"] .star-mark::before{transform:translateX(-50%) scaleY(1.7)}
+.star[data-on="true"] .star-mark::after{transform:translateY(-50%) scaleX(1.7)}
+.star[data-on="true"] .star-name{color:var(--accent)}
+.star:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:.3rem}
+.star-desc{display:none}
+
+/* ── The callout ──────────────────────────────────────────
+   Anchored where the leader lines terminate. No plate: a single rule down its
+   left edge, which is what the leader is drawing toward. ── */
+.call{position:absolute;right:clamp(1.5rem,3.5vw,2.5rem);top:50%;
+  transform:translateY(-50%);width:min(20rem,32vw);z-index:3;
+  padding-left:1rem;border-left:1px solid rgba(255,255,255,.16);min-height:8rem;
+  display:flex;flex-direction:column;justify-content:center}
+.call-in{animation:call-in .3s cubic-bezier(.22,1,.36,1) both}
+@keyframes call-in{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+.call-name{margin:0 0 .4rem;font-size:1.2rem;font-weight:600;letter-spacing:-.03em}
+.call-desc{margin:0;font-size:.83rem;line-height:1.6;color:var(--ink-2)}
+.call-note{margin:.45rem 0 0;font-size:.68rem;letter-spacing:.06em;color:var(--accent)}
+.call-coord{display:block;margin-top:.6rem;font-size:.64rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.call-idle{margin:0;font-size:.82rem;line-height:1.65;color:var(--ink-3)}
+.call-idle b{color:var(--ink-2);font-weight:500}
+
+/* The leader itself, drawn into the same SVG as the figure. */
+.lead{stroke:var(--accent);stroke-width:1;fill:none;opacity:.75}
+.lead-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:lead .42s cubic-bezier(.65,0,.35,1) forwards}
+@keyframes lead{to{stroke-dashoffset:0}}
+
+/* ── Below 900px the figure has no room, so it becomes a list ── */
+@media (max-width:900px){
+  /* As a list the page is reading, not looking, and the limb runs straight
+     through the middle of it. The sky stays visible but stops competing. */
+  .field{background:linear-gradient(180deg,rgba(5,6,13,.80),rgba(5,6,13,.90))}
+  .field{padding-bottom:3rem}
+  .lines,.call{display:none}
+  .stars{position:static;display:flex;flex-direction:column;gap:.15rem;margin-top:1.75rem}
+  .star{position:static;transform:none;width:auto;height:auto;
+    display:flex;align-items:flex-start;gap:.85rem;padding:.75rem .2rem;
+    border-top:1px solid rgba(255,255,255,.08)}
+  .star:last-child{border-bottom:1px solid rgba(255,255,255,.08)}
+  .star-mark{flex-shrink:0;margin-top:.4rem}
+  .star-name{position:static;transform:none;width:auto;text-align:left;
+    font-size:.92rem;color:var(--ink)}
+  .star-desc{display:block;font-size:.74rem;line-height:1.5;color:var(--ink-3);margin-top:.2rem}
+  .about{position:static;display:inline-block;margin-top:1.5rem}
+}
+@media (prefers-reduced-motion:reduce){
+  .call-in{animation:none}
+  .lead-draw{animation:none;stroke-dashoffset:0}
+  .seg,.star-core,.star-mark::before,.star-mark::after,.star-name{transition:none}
+}
