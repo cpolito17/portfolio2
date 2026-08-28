@@ -134,8 +134,11 @@
   }
 
   function measurePlate(p){
-    const r = p.el.getBoundingClientRect();
-    const w = Math.max(1, Math.round(r.width / DIV)), h = Math.max(1, Math.round(r.height / DIV));
+    /* Layout dimensions ignore visual transforms. Using getBoundingClientRect
+       here made an entrance scale collapse the canvas to a one-pixel strip,
+       which later stretched into vertical lines. */
+    const w = Math.max(1, Math.round(p.el.offsetWidth / DIV));
+    const h = Math.max(1, Math.round(p.el.offsetHeight / DIV));
     if (w === p.w && h === p.h) return false;
     p.w = w; p.h = h; p.cv.width = w; p.cv.height = h;
     p.ctx = p.cv.getContext('2d');
@@ -159,16 +162,17 @@
   const cvX = x => x * KX, cvY = y => y * KY;
 
   function measure(){
-    const b = plot.getBoundingClientRect();
-    BW = b.width; BH = b.height;
+    /* clientWidth/clientHeight stay stable during clip and transform effects.
+       Canvas geometry must follow layout, not the current animation frame. */
+    BW = plot.clientWidth; BH = plot.clientHeight;
     R  = Math.min(BW, BH) * 0.42;
     CX = BW/2; CY = BH/2;
     w = Math.max(1, Math.round(BW / DIV));
     h = Math.max(1, Math.round(BH / DIV));
     cv.width = w; cv.height = h;
     KX = w / BW; KY = h / BH;
-    NODE_HALF = (nodes[0]?.getBoundingClientRect().width || 28) / 2;
-    const star = starBtn.getBoundingClientRect().width || 72;
+    NODE_HALF = (nodes[0]?.offsetWidth || 28) / 2;
+    const star = starBtn.offsetWidth || 72;
     starBtn.style.transform = `translate(${CX - star/2}px, ${CY - star/2}px)`;
   }
 
@@ -663,6 +667,15 @@
   }
 
   layout();
+  /* Repaint once after the page reveal as a final guard against late font or
+     viewport changes. Ignore the looping animations on child elements. */
+  const pageRoot = document.querySelector('[data-page-root]');
+  const settleEntrance = e => {
+    if (e.target !== pageRoot) return;
+    pageRoot.removeEventListener('animationend', settleEntrance);
+    requestAnimationFrame(layout);
+  };
+  pageRoot?.addEventListener('animationend', settleEntrance);
   addEventListener('resize', layout);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
   requestAnimationFrame(frame);
