@@ -64,6 +64,20 @@ const prose = () => [
 ].join('\n');
 const fill = s => Object.entries(SUBST).reduce((a, [k, v]) => a.replace(k, () => v), s);
 
+/* The catalogue's reading order is a list of keys into APPS, and a key that
+   matches nothing there only fails in the browser, as a TypeError deep inside a
+   variant that leaves the page blank. Catch it here instead: a mistyped key
+   fails the build with the key in the message. */
+function checkCatalogue(){
+  const src = read('./src/core/apps.js');
+  const known = new Set([...src.matchAll(/^  (\w+): \{ id:/gm)].map(m => m[1]));
+  const order = src.match(/const ORDER = \[([^\]]*)\]/);
+  if (!order) throw new Error('apps.js: no ORDER array found');
+  const bad = [...order[1].matchAll(/'([^']+)'/g)].map(m => m[1]).filter(k => !known.has(k));
+  if (bad.length) throw new Error(`apps.js: ORDER names ${bad.map(k => `"${k}"`).join(', ')}, not in APPS`);
+}
+checkCatalogue();
+
 /* Each source file keeps its own <script> tag, which preserves today's semantics
    exactly: top-level declarations share one global lexical scope across tags, and
    the files were written against that. */
