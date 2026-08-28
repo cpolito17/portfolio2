@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Charlie Polito</title>
+<meta name="description" content="Apps built by Charlie Polito, an industrial and operations engineer in Michigan.">
+<link rel="canonical" href="https://charliepolito.com/">
+<meta property="og:title" content="Charlie Polito">
+<meta property="og:description" content="Apps built by Charlie Polito, an industrial and operations engineer in Michigan.">
+<meta property="og:url" content="https://charliepolito.com/">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Source+Serif+4:ital,wght@1,400&display=swap">
+<style>__STYLES__</style>
+</head>
+<body class="orbit">
+<canvas id="sky" aria-hidden="true"></canvas>
+<svg id="labels" aria-hidden="true"></svg>
+
+<div class="stage page-enter" data-page-root>
+
+  <aside class="side">
+    <div class="side-main" id="sideMain">
+      <header class="brand">
+        <h1 class="wordmark">Charlie Polito</h1>
+        <p class="brand-sub">Industrial and operations engineer, Michigan</p>
+      </header>
+
+      <nav aria-label="Applications">
+        <ol class="index" id="index"></ol>
+      </nav>
+
+      <footer class="side-foot">
+        <button class="about-open" type="button" id="aboutOpen">
+          <span>About me</span>
+          <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 3 L11 8 L6 13"/>
+          </svg>
+        </button>
+        <p class="rate" id="rate"></p>
+      </footer>
+    </div>
+
+    <div class="detail" id="detail" aria-live="polite"></div>
+
+    <!-- Slides over both columns from the left. -->
+    <div class="about" id="about" hidden>
+      <button class="about-back" type="button" id="aboutBack">
+        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 3 L5 8 L10 13"/>
+        </svg>
+        <span>Back to apps</span>
+      </button>
+      <div class="about-scroll" id="aboutBody"></div>
+    </div>
+  </aside>
+
+  <section class="plot" id="plot">
+    <canvas class="plot-bg" id="plotbg" aria-hidden="true"></canvas>
+    <ul class="nodes" id="nodes"></ul>
+    <button class="star" type="button" id="star" aria-label="About Charlie Polito"></button>
+  </section>
+
+</div>
+
+__SCRIPTS__
+</body>
+</html>

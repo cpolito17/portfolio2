@@ -1,6 +1,16 @@
 {
-  "label": "C · Dissolve",
+  "label": "C \u00b7 Dissolve",
+  "order": 40,
   "blurb": "A's world, different material. Buttons are dithered fills whose edges break up into the sky instead of blurring against it, and hover shifts the dither threshold so a panel ignites rather than scales. Finer grain, cooler ramp, planets resolved as discs.",
-  "css": ["core/base.css", "variants/c/styles.css"],
-  "js":  ["variants/c/sky.config.js", "core/sky.js", "core/apps.js", "variants/c/hub.js", "core/nav.js"]
+  "css": [
+    "core/base.css",
+    "variants/c/styles.css"
+  ],
+  "js": [
+    "variants/c/sky.config.js",
+    "core/sky.js",
+    "core/apps.js",
+    "variants/c/hub.js",
+    "core/nav.js"
+  ]
 }

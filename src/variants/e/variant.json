@@ -1,6 +1,16 @@
 {
-  "label": "E · Constellation",
+  "label": "E \u00b7 Constellation",
+  "order": 60,
   "blurb": "The apps become the sky. Each is a star at a real altitude and azimuth, joined into a constellation; hover draws a leader out to the readout using the same callout mechanic the planets use. Dither grain coarsens with depth.",
-  "css": ["core/base.css", "variants/e/styles.css"],
-  "js":  ["variants/e/sky.config.js", "core/sky.js", "core/apps.js", "variants/e/hub.js", "core/nav.js"]
+  "css": [
+    "core/base.css",
+    "variants/e/styles.css"
+  ],
+  "js": [
+    "variants/e/sky.config.js",
+    "core/sky.js",
+    "core/apps.js",
+    "variants/e/hub.js",
+    "core/nav.js"
+  ]
 }

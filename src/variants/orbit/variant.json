@@ -1,0 +1,7 @@
+{
+  "label": "Orbit",
+  "order": 0,
+  "blurb": "The composite: A's side index with C's dither-ignite on the rows, the orbit plot as the main stage. Apps orbit at Kepler rates, the star opens About, and the two halves highlight each other.",
+  "css": ["core/base.css", "variants/orbit/styles.css"],
+  "js":  ["variants/orbit/sky.config.js", "core/sky.js", "core/apps.js", "core/resume.js", "variants/orbit/hub.js", "core/nav.js"]
+}

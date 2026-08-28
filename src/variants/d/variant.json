@@ -1,6 +1,16 @@
 {
-  "label": "D · Orbit",
+  "label": "D \u00b7 Orbit",
+  "order": 50,
   "blurb": "The view flips: looking down on the ecliptic instead of out at the horizon. Real inner-solar-system plot at true longitudes, with the apps sharing the planets' orbits. Hovering lights the whole ring and sets the name along the arc.",
-  "css": ["core/base.css", "variants/d/styles.css"],
-  "js":  ["variants/d/sky.config.js", "core/sky.js", "core/apps.js", "variants/d/hub.js", "core/nav.js"]
+  "css": [
+    "core/base.css",
+    "variants/d/styles.css"
+  ],
+  "js": [
+    "variants/d/sky.config.js",
+    "core/sky.js",
+    "core/apps.js",
+    "variants/d/hub.js",
+    "core/nav.js"
+  ]
 }

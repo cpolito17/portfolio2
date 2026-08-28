@@ -1,6 +1,15 @@
 {
-  "label": "A · Observatory",
+  "label": "A \u00b7 Observatory",
+  "order": 20,
   "blurb": "Sky kept, grid removed. Full-bleed instrument panel: a hairline index on the left, a readout on the right that fills on hover or focus, live ephemeris in the rail. Keyboard-navigable.",
-  "css": ["core/base.css", "variants/a/styles.css"],
-  "js":  ["core/sky.js", "core/apps.js", "variants/a/hub.js", "core/nav.js"]
+  "css": [
+    "core/base.css",
+    "variants/a/styles.css"
+  ],
+  "js": [
+    "core/sky.js",
+    "core/apps.js",
+    "variants/a/hub.js",
+    "core/nav.js"
+  ]
 }

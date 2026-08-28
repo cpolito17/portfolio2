@@ -1,0 +1,44 @@
+{
+  "name": "Charlie Polito",
+  "lede": "Industrial and operations engineer. I turn manual processes into systems that run themselves, and I write the software when the off-the-shelf tool does not exist.",
+  "intro": "I came up through Michigan's Industrial and Operations Engineering program and competitive FIRST robotics, cut downtime on an EV battery plant floor, and now build the reporting and workflow automation behind an aerospace cabin operation. Everything on this site started as a problem I wanted solved for myself.",
+  "roles": [
+    {
+      "org": "Safran Cabin",
+      "meta": "Industrial Engineer, 2025 to present",
+      "bullets": [
+        "Built the Power BI reporting suite tracking manufacturing-order age, zone, and status across the stockroom. It is now a daily operations tool.",
+        "Replaced manual, email-driven stockroom processes with a Monday.com part-request queue and Power Automate workflows.",
+        "Led vendor negotiation on a bin-conversion project, catching pricing and spec errors across quote revisions."
+      ]
+    },
+    {
+      "org": "Ultium Cells",
+      "meta": "Industrial Engineer, 2024 to 2025",
+      "bullets": [
+        "Cut 1,841 hours of line downtime across several identical production lines through root-cause work and process changes.",
+        "Started and led a 2,000-part prototyping and 3D-printing lab from nothing, and earned a company innovation award for it.",
+        "Owned core operational functions for a 22-person production department."
+      ]
+    },
+    {
+      "org": "IDP",
+      "meta": "Industrial Engineer, co-op, 2023",
+      "bullets": [
+        "Built a custom order tracking system, now used by more than 70 people on the floor.",
+        "Designed a paint line and took it from proposal through approval. It runs more than 250,000 parts a year.",
+        "Coordinated the move of 9 large machines into a new facility, using simulation to decide where each one went."
+      ]
+    }
+  ],
+  "skills": [
+    { "title": "Data and analytics", "items": "Power BI, DAX, Power Query, SQL, Python, statistical process control" },
+    { "title": "Automation and software", "items": "Power Automate, TypeScript, React, Astro, Docker, REST APIs" },
+    { "title": "Operations and lean", "items": "Lean and Six Sigma, root cause analysis, andon and visual management, kanban systems, time studies, supplier coordination" }
+  ],
+  "links": [
+    { "label": "Email",    "url": "mailto:cpolito@umich.edu" },
+    { "label": "LinkedIn", "url": "https://www.linkedin.com/in/charliepolito", "external": true },
+    { "label": "GitHub",   "url": "https://github.com/cpolito17",             "external": true }
+  ]
+}

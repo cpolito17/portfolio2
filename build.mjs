@@ -30,10 +30,38 @@ const REVIEW = 'preview';
 
 /* Shared substitutions. Both are large data blobs and are inlined once per page
    that asks for the module holding them. */
+const RESUME = JSON.parse(read('./src/data/resume.json'));
 const SUBST = {
-  '__ICONS__': read('./src/data/icons.json').trim(),
-  '__STARS__': read('./src/data/stars.txt').trim(),
+  '__ICONS__':  read('./src/data/icons.json').trim(),
+  '__STARS__':  read('./src/data/stars.txt').trim(),
+  '__RESUME__': JSON.stringify(RESUME),
 };
+
+/* The standalone /about page is generated from the same resume.json the in-page
+   About panels read, so a variant that renders the resume itself cannot drift
+   from the page that deep-links to it. */
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const prose = () => [
+  `<h1 class="rise">${esc(RESUME.name)}</h1>`,
+  `<p class="lede rise">${esc(RESUME.lede)}</p>`,
+  `<p class="rise">${esc(RESUME.intro)}</p>`,
+  `<h2 class="rise">Work</h2>`,
+  ...RESUME.roles.map(r => `<article class="role rise">
+    <div class="role-head">
+      <h3>${esc(r.org)}</h3>
+      <span class="role-meta">${esc(r.meta)}</span>
+    </div>
+    <ul>${r.bullets.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+  </article>`),
+  `<h2 class="rise">What I work in</h2>`,
+  `<div class="skills rise">${RESUME.skills.map(s => `
+    <div class="skill-group"><h4>${esc(s.title)}</h4><p>${esc(s.items)}</p></div>`).join('')}
+  </div>`,
+  `<h2 class="rise">Get in touch</h2>`,
+  `<div class="links rise">${RESUME.links.map(l => `
+    <a class="glass pill" href="${l.url}"${l.external ? ' target="_blank" rel="noopener noreferrer"' : ''}>${esc(l.label)}</a>`).join('')}
+  </div>`
+].join('\n');
 const fill = s => Object.entries(SUBST).reduce((a, [k, v]) => a.replace(k, () => v), s);
 
 /* Each source file keeps its own <script> tag, which preserves today's semantics
@@ -46,7 +74,7 @@ function render(shell, css, js){
   const out = read(shell)
     .replace('__STYLES__',  () => bundleCSS(css))
     .replace('__SCRIPTS__', () => bundleJS(js));
-  const left = out.match(/__[A-Z]+__/g);
+  const left = out.replace('__PROSE__', '').match(/__[A-Z]+__/g);
   if (left) throw new Error(`${shell}: unfilled placeholders ${[...new Set(left)].join(', ')}`);
   return out;
 }
@@ -62,11 +90,14 @@ rmSync(url('./dist'), { recursive: true, force: true });
 mkdirSync(url('./dist'), { recursive: true });
 
 /* ── Variants ─────────────────────────────────────────────── */
-/* CURRENT leads: the review reads as "here is what is live, here are the
-   alternatives", not as an alphabetical list with the baseline buried in it. */
+/* Order in the picker is a variant's own business: it declares "order" in its
+   variant.json, so the newest composite leads and the superseded explorations
+   trail it, without the build hardcoding any of their names. */
+const ORDER_OF = n =>
+  JSON.parse(read(`./src/variants/${n}/variant.json`)).order ?? 50;
 const names = readdirSync(url('./src/variants'), { withFileTypes: true })
   .filter(d => d.isDirectory()).map(d => d.name).sort()
-  .sort((a, b) => (a === CURRENT ? -1 : b === CURRENT ? 1 : 0));
+  .sort((a, b) => ORDER_OF(a) - ORDER_OF(b));
 
 /* Pages under the review prefix carry a way back to the picker. Injected here
    rather than written into any variant, so no variant has to know the review
@@ -101,7 +132,7 @@ for (const name of names){
 /* ── About, shared by every variant ───────────────────────── */
 emit('about.html', render('./src/about.html',
   ['core/base.css', 'core/about.css'],
-  ['core/sky.js', 'core/about.js', 'core/nav.js']));
+  ['core/sky.js', 'core/about.js', 'core/nav.js']).replace('__PROSE__', prose));
 
 /* ── The picker, at the root of the review prefix ─────────── */
 const manifest = built.map(({ name, label, blurb, href }) => ({ name, label, blurb, href }));

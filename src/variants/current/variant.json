@@ -1,6 +1,15 @@
 {
   "label": "Current",
+  "order": 10,
   "blurb": "What is live today: dithered night sky, liquid-glass tiles, 4-column mixed-span grid.",
-  "css": ["core/base.css", "variants/current/styles.css"],
-  "js":  ["core/sky.js", "core/apps.js", "variants/current/hub.js", "core/nav.js"]
+  "css": [
+    "core/base.css",
+    "variants/current/styles.css"
+  ],
+  "js": [
+    "core/sky.js",
+    "core/apps.js",
+    "variants/current/hub.js",
+    "core/nav.js"
+  ]
 }

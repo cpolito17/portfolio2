@@ -1,6 +1,13 @@
 {
-  "label": "B · Press",
+  "label": "B \u00b7 Press",
+  "order": 30,
   "blurb": "No canvas, no glass, no blur. Warm paper and near-black ink, a serif masthead, hairline rules, and the apps as a numbered editorial index. Motion almost absent.",
-  "css": ["variants/b/styles.css"],
-  "js":  ["core/apps.js", "variants/b/hub.js", "core/nav.js"]
+  "css": [
+    "variants/b/styles.css"
+  ],
+  "js": [
+    "core/apps.js",
+    "variants/b/hub.js",
+    "core/nav.js"
+  ]
 }
