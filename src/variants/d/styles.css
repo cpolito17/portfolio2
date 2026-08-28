@@ -1,0 +1,105 @@
+/* ── D · Orbit ─────────────────────────────────────────────
+   The camera turns ninety degrees. Instead of standing under the sky looking
+   out at a horizon, this page looks down on the plane of the solar system, and
+   the apps are plotted as bodies sharing the inner planets' orbits.
+
+   The diagram is a real plot: ring radii are the planets' semi-major axes to
+   scale, and each planet sits at its true heliocentric longitude for today. The
+   apps are additional bodies on those same rings.
+
+   Below 900px the plot cannot be read, so the nodes stop being positioned and
+   fall back to an ordinary list. The inline coordinates the script writes are
+   simply inert once the node is static, so there is one DOM and one set of
+   links at every width. ── */
+
+.chart{position:relative;z-index:2;min-height:100vh;
+  display:grid;grid-template-rows:auto 1fr auto;
+  padding:clamp(1.25rem,3vw,2rem)}
+
+.head{grid-row:1}
+.wordmark{font-size:clamp(1.25rem,2.6vw,1.6rem);font-weight:600;letter-spacing:-.045em;margin:0}
+.head-sub{margin:.2rem 0 0;font-size:.76rem;letter-spacing:.02em;color:var(--ink-3)}
+.head-about{position:absolute;top:clamp(1.25rem,3vw,2rem);right:clamp(1.25rem,3vw,2rem);
+  font-size:.8rem;color:var(--accent);text-decoration:none;
+  border-bottom:1px dashed rgba(232,193,112,.5);padding-bottom:.15rem}
+.head-about:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* ── The plot ─────────────────────────────────────────────── */
+.plot{grid-row:2;position:relative;min-height:0}
+.plot-bg{position:absolute;inset:0;width:100%;height:100%;
+  image-rendering:pixelated;image-rendering:crisp-edges}
+.plot-arcs{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.arc-text{fill:var(--accent);font-family:var(--font);font-size:11px;font-weight:500;
+  letter-spacing:.16em;text-transform:uppercase}
+.arc-halo{fill:none;stroke:rgba(5,6,13,.9);stroke-width:3.5;stroke-linejoin:round;
+  font-family:var(--font);font-size:11px;font-weight:500;letter-spacing:.16em;
+  text-transform:uppercase}
+
+.nodes{position:absolute;inset:0;list-style:none;margin:0;padding:0}
+/* The node box is the dot and nothing else, so translate(-50%,-50%) lands the
+   dot itself on the ring. Centring the whole dot-plus-label column instead
+   pushed every marker off its orbit by half a label. */
+.node{
+  position:absolute;transform:translate(-50%,-50%);
+  width:30px;height:30px;display:block;
+  text-decoration:none;color:var(--ink-3);
+  transition:color .18s ease-out;
+}
+.node-dot{
+  width:30px;height:30px;display:grid;place-items:center;
+  background:rgba(8,10,20,.72);border:1px solid rgba(255,255,255,.14);
+  border-radius:999px;
+  transition:transform .2s cubic-bezier(.22,1,.36,1),border-color .2s ease-out,
+             background-color .2s ease-out;
+}
+.node-dot svg{width:20px;height:20px;display:block;image-rendering:pixelated}
+.node-name{position:absolute;top:calc(100% + .35rem);left:50%;
+  transform:translateX(-50%);width:7.5rem;
+  font-size:.66rem;line-height:1.25;text-align:center;
+  text-shadow:0 1px 3px rgba(5,6,13,.9),0 0 6px rgba(5,6,13,.8);
+  transition:color .18s ease-out,opacity .18s ease-out}
+/* When a node is active its name is set along the ring instead, so the flat
+   label would just print it twice. */
+.node[data-on="true"] .node-name{opacity:0}
+.node[data-on="true"]{color:var(--ink)}
+.node[data-on="true"] .node-dot{transform:scale(1.28);border-color:var(--accent);
+  background:rgba(232,193,112,.16)}
+.node[data-on="true"] .node-name{color:var(--accent)}
+.node:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:.4rem}
+
+/* ── Readout ──────────────────────────────────────────────── */
+.panel{grid-row:3;max-width:34rem;min-height:5.5rem;display:flex;align-items:flex-end}
+.panel-in{animation:panel-in .26s cubic-bezier(.22,1,.36,1) both}
+@keyframes panel-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.panel-name{margin:0 0 .3rem;font-size:1.15rem;font-weight:600;letter-spacing:-.03em}
+.panel-desc{margin:0;font-size:.84rem;line-height:1.55;color:var(--ink-2);max-width:44ch}
+.panel-note{margin:.3rem 0 0;font-size:.68rem;letter-spacing:.06em;color:var(--accent)}
+.panel-idle{margin:0;font-size:.82rem;line-height:1.6;color:var(--ink-3);max-width:46ch}
+.panel-idle b{color:var(--ink-2);font-weight:500}
+.panel-orbit{display:block;margin-top:.4rem;font-size:.66rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3)}
+
+/* ── Below 900px the plot is unreadable, so it becomes a list ── */
+@media (max-width:900px){
+  .chart{grid-template-rows:auto auto auto;gap:1.5rem}
+  .plot{min-height:0}
+  .plot-bg,.plot-arcs{display:none}
+  .nodes{position:static;display:flex;flex-direction:column;gap:.15rem}
+  .node{position:static;transform:none;display:flex;flex-direction:row;align-items:center;
+    gap:.7rem;width:auto;height:auto;padding:.6rem .3rem;
+    border-top:1px solid rgba(255,255,255,.08)}
+  .node-name{position:static;transform:none;width:auto}
+  .node[data-on="true"] .node-name{opacity:1}
+  .node:last-child{border-bottom:1px solid rgba(255,255,255,.08)}
+  .node-name{font-size:.92rem;text-align:left;color:var(--ink)}
+  .node[data-on="true"] .node-dot{transform:none}
+  .panel{display:none}
+  /* The readout has nowhere to go in a list, so each row carries its own copy. */
+  .node-desc{display:block;font-size:.74rem;line-height:1.45;color:var(--ink-3);margin-top:.15rem}
+}
+.node-desc{display:none}
+
+@media (prefers-reduced-motion:reduce){
+  .node,.node-dot,.node-name{transition:none}
+  .panel-in{animation:none}
+}
