@@ -1,0 +1,110 @@
+/* ── A · Observatory ───────────────────────────────────────
+   The hub as an instrument panel rather than a set of buttons. Two anchored
+   columns at the edges of the viewport, the sky running uninterrupted between
+   them, and one readout that fills from whichever app is under the cursor or
+   the caret. Nothing floats: there are no cards and no blur here. Legibility
+   comes from a gradient scrim keyed to each column's edge, so the sky stays
+   visible right up to the type instead of being cut out behind a panel. ── */
+
+.obs{ --rail:clamp(19rem,25vw,23rem); --read:clamp(20rem,27vw,26rem); }
+
+.panel{
+  position:relative;z-index:2;min-height:100vh;
+  display:grid;grid-template-columns:var(--rail) 1fr var(--read);
+  align-items:stretch;
+}
+
+/* ── Left rail: the index ─────────────────────────────────── */
+.rail{
+  display:flex;flex-direction:column;gap:clamp(1.25rem,3vh,2rem);
+  padding:clamp(1.75rem,4vh,2.75rem) clamp(1.25rem,2vw,2rem);
+  background:linear-gradient(90deg,
+    rgba(5,6,13,.92) 0%, rgba(5,6,13,.88) 45%, rgba(5,6,13,.72) 68%,
+    rgba(5,6,13,.42) 84%, rgba(5,6,13,.16) 94%, transparent 100%);
+}
+.rail-head{display:flex;flex-direction:column;gap:.5rem}
+.wordmark{font-size:1.35rem;font-weight:600;letter-spacing:-.045em;margin:0}
+.rail-sub{margin:0;font-size:.8rem;line-height:1.55;color:var(--ink-3);max-width:30ch}
+
+.index{list-style:none;margin:0;padding:0;flex:1;
+  display:flex;flex-direction:column;justify-content:center}
+.row{
+  display:grid;grid-template-columns:1.9rem 1fr;align-items:center;gap:.7rem;
+  padding:.5rem .6rem;margin-left:-.6rem;border-radius:.55rem;
+  text-decoration:none;color:var(--ink-2);
+  border-top:1px solid rgba(255,255,255,.07);
+  transition:color .16s ease,background-color .16s ease,padding-left .16s cubic-bezier(.22,1,.36,1);
+}
+.index li:last-child .row{border-bottom:1px solid rgba(255,255,255,.07)}
+.row-num{font-size:.62rem;letter-spacing:.14em;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;transition:color .16s ease}
+.row-name{font-size:.92rem;font-weight:400;letter-spacing:-.01em;line-height:1.3;
+  overflow-wrap:break-word}
+.row[data-active="true"]{color:var(--ink);background:rgba(232,193,112,.07);padding-left:1rem}
+.row[data-active="true"] .row-num{color:var(--accent)}
+.row:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* Desc is the readout's job on desktop; it appears inline only once the
+   readout column is gone. */
+.row-desc{display:none}
+
+/* ── Right column: the readout ────────────────────────────── */
+.readout{
+  display:flex;flex-direction:column;justify-content:center;gap:1rem;
+  padding:clamp(1.75rem,4vh,2.75rem) clamp(1.25rem,2vw,2rem);
+  background:linear-gradient(270deg,
+    rgba(5,6,13,.92) 0%, rgba(5,6,13,.88) 45%, rgba(5,6,13,.72) 68%,
+    rgba(5,6,13,.42) 84%, rgba(5,6,13,.16) 94%, transparent 100%);
+  text-align:right;
+}
+.read-icon{margin-left:auto;width:64px;height:64px;display:flex;align-items:center;
+  justify-content:center;border:1px solid rgba(255,255,255,.12);border-radius:.75rem}
+.read-icon svg{width:44px;height:44px;display:block;image-rendering:pixelated}
+.read-name{margin:0;font-size:clamp(1.35rem,2.4vw,1.75rem);font-weight:600;
+  letter-spacing:-.035em;line-height:1.15;text-wrap:balance}
+.read-desc{margin:0;font-size:.88rem;line-height:1.6;color:var(--ink-2);margin-left:auto;max-width:34ch}
+.read-note{margin:0;font-size:.7rem;letter-spacing:.06em;color:var(--accent);opacity:.9}
+.read-open{margin-left:auto;display:inline-flex;align-items:center;gap:.4rem;
+  font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+/* The whole readout swaps at once, so it is cross-faded rather than cut. */
+.read-body{display:flex;flex-direction:column;align-items:flex-end;gap:.75rem;
+  animation:read-in .28s cubic-bezier(.22,1,.36,1) both}
+@keyframes read-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.read-idle{color:var(--ink-3);font-size:.86rem;line-height:1.65;margin:0;margin-left:auto;max-width:32ch}
+.read-idle b{display:block;color:var(--ink);font-weight:500;font-size:1.05rem;
+  letter-spacing:-.02em;margin-bottom:.5rem}
+
+/* ── Ephemeris: the sky's own data, read back as UI ───────── */
+.rail-foot{display:flex;flex-direction:column;gap:1.1rem}
+.rail-about{display:inline-flex;align-items:center;gap:.4rem;align-self:flex-start;
+  font-size:.82rem;color:var(--accent);text-decoration:none;
+  border-bottom:1px dashed rgba(232,193,112,.5);padding-bottom:.15rem;
+  transition:gap .16s cubic-bezier(.22,1,.36,1)}
+.rail-about:hover{gap:.7rem}
+.rail-about:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.ephem{margin:0;display:grid;grid-template-columns:auto 1fr;gap:.25rem .8rem;
+  font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.ephem dt{color:var(--ink-2)}
+.ephem dd{margin:0;font-variant-numeric:tabular-nums;text-align:right}
+.ephem-head{grid-column:1 / -1;color:var(--ink-3);opacity:.65;margin-bottom:.15rem}
+
+/* ── Narrow: the readout column folds into the rows ───────── */
+@media (max-width:1080px){
+  .panel{grid-template-columns:1fr;min-height:auto}
+  .rail{background:linear-gradient(180deg,rgba(5,6,13,.92) 0%,rgba(5,6,13,.82) 100%);
+    max-width:44rem;margin:0 auto;width:100%;padding-bottom:3rem}
+  .index{justify-content:flex-start}
+  .readout{display:none}
+  .row{grid-template-columns:1.9rem 1fr;align-items:start;padding:.85rem .6rem}
+  .row-num{padding-top:.2rem}
+  .row-desc{display:block;font-size:.76rem;line-height:1.5;color:var(--ink-3);
+    margin:.3rem 0 0;max-width:52ch}
+  .row[data-active="true"]{padding-left:.6rem;background:none}
+}
+@media (max-width:520px){
+  .rail{padding-left:1.1rem;padding-right:1.1rem}
+  .row{grid-template-columns:1.5rem 1fr;gap:.55rem}
+}
+@media (prefers-reduced-motion:reduce){
+  .read-body{animation:none}
+  .row{transition:none}
+}
