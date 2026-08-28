@@ -19,11 +19,14 @@ const read = p => readFileSync(typeof p === 'string' ? url(p) : p, 'utf8');
 
 const CURRENT = 'current';
 
-/* PREVIEW=1 builds for the throwaway variant-review Worker instead of
-   production. Every variant, CURRENT included, moves under its own path and the
-   picker takes the root, so the deployed site opens on the comparison rather
-   than on one of the things being compared. Production output is untouched. */
-const PREVIEW = !!process.env.PREVIEW;
+/* Where the variant review lives on the deployed site. The live design keeps
+   the root; everything under this prefix is the review harness.
+
+   wrangler.jsonc claims only charliepolito.com/ and charliepolito.com/about, so
+   this prefix is not routed on the public domain at all. It is reachable on the
+   Worker's workers.dev subdomain and nowhere else, which is what makes it safe
+   to ship the review alongside the live site instead of on a second Worker. */
+const REVIEW = 'preview';
 
 /* Shared substitutions. Both are large data blobs and are inlined once per page
    that asks for the module holding them. */
@@ -65,11 +68,11 @@ const names = readdirSync(url('./src/variants'), { withFileTypes: true })
   .filter(d => d.isDirectory()).map(d => d.name).sort()
   .sort((a, b) => (a === CURRENT ? -1 : b === CURRENT ? 1 : 0));
 
-/* In a preview build each variant page carries a way back to the picker.
-   Injected here rather than written into any variant, so no variant has to know
-   the review harness exists. */
+/* Pages under the review prefix carry a way back to the picker. Injected here
+   rather than written into any variant, so no variant has to know the review
+   harness exists and the live page at / never shows it. */
 const BACKBAR = `
-<a href="/" style="position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:99;
+<a href="/${REVIEW}/" style="position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:99;
   display:flex;gap:.5rem;align-items:center;padding:.4rem .85rem;border-radius:999px;
   background:rgba(10,12,20,.82);color:#fff;border:1px solid rgba(255,255,255,.22);
   font:500 12px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.04em;
@@ -77,37 +80,36 @@ const BACKBAR = `
   &larr; All variants</a>`;
 
 const built = [];
-let currentHTML = '';
 for (const name of names){
   const v = JSON.parse(read(`./src/variants/${name}/variant.json`));
-  let html = render(`./src/variants/${name}/index.html`, v.css, v.js);
-  if (name === CURRENT) currentHTML = html;
-  if (PREVIEW) html = html.replace('</body>', () => BACKBAR + '\n</body>');
-  const path = (name === CURRENT && !PREVIEW) ? 'index.html' : `${name}/index.html`;
-  emit(path, html);
-  built.push({ name, ...v, href: path });
+  const html = render(`./src/variants/${name}/index.html`, v.css, v.js);
+
+  /* CURRENT is emitted twice: once at the root, which is the live site, and
+     once under the review prefix so the picker can frame it beside the
+     alternatives. Same bytes, apart from the back link. */
+  if (name === CURRENT){
+    emit('index.html', html);
+    emit(`${REVIEW}/embed.html`, html                      // wrapper-stripped, for embedding
+      .replace(/^[\s\S]*?<title>/, '<title>')
+      .replace(/<\/head>\s*<body>/, '')
+      .replace(/<\/body>\s*<\/html>\s*$/, ''));
+  }
+  emit(`${REVIEW}/${name}/index.html`, html.replace('</body>', () => BACKBAR + '\n</body>'));
+  built.push({ name, ...v, href: `${name}/index.html` });
 }
 
 /* ── About, shared by every variant ───────────────────────── */
-{
-  let html = render('./src/about.html',
-    ['core/base.css', 'core/about.css'],
-    ['core/sky.js', 'core/about.js', 'core/nav.js']);
-  if (PREVIEW) html = html.replace('</body>', () => BACKBAR + '\n</body>');
-  emit('about.html', html);
-}
+emit('about.html', render('./src/about.html',
+  ['core/base.css', 'core/about.css'],
+  ['core/sky.js', 'core/about.js', 'core/nav.js']));
 
-/* ── Preview ──────────────────────────────────────────────
-   The CURRENT hub with the document wrapper stripped, for embedding in hosts
-   that supply their own <head>/<body> skeleton. Not served by the Worker. */
-emit('preview.html', currentHTML
-  .replace(/^[\s\S]*?<title>/, '<title>')
-  .replace(/<\/head>\s*<body>/, '')
-  .replace(/<\/body>\s*<\/html>\s*$/, ''));
+/* ── The picker, at the root of the review prefix ─────────── */
+const manifest = built.map(({ name, label, blurb, href }) => ({ name, label, blurb, href }));
+emit(`${REVIEW}/index.html`, read('./src/compare.html')
+  .replace('__VARIANTS__', () => JSON.stringify(manifest)));
 
-/* ── Review index ─────────────────────────────────────────
-   Served at /compare in a production build and at / in a preview one. */
-const compare = read('./src/compare.html')
-  .replace('__VARIANTS__', () => JSON.stringify(built.map(
-    ({ name, label, blurb, href }) => ({ name, label, blurb, href }))));
-emit(PREVIEW ? 'index.html' : 'compare.html', compare);
+/* What was built, for shots.mjs and audit.mjs. They used to recover this by
+   regexing it back out of the picker's inline script, which broke the moment
+   the picker moved. */
+writeFileSync(url(`./dist/${REVIEW}/variants.json`),
+  JSON.stringify({ review: REVIEW, variants: manifest }, null, 2));

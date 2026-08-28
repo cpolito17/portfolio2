@@ -14,8 +14,9 @@ const BAD = [
 ];
 /* Every built variant plus the shared About, so a new frontend cannot quietly
    reintroduce copy the old one was checked for. */
-const PAGES = JSON.parse(readFileSync(new URL('./dist/compare.html', import.meta.url), 'utf8')
-  .match(/const VARIANTS = (\[.*?\]);/s)[1]).map(v => v.href).concat(['about.html']);
+const M = JSON.parse(readFileSync(new URL('./dist/preview/variants.json', import.meta.url), 'utf8'));
+const PAGES = ['index.html', 'about.html']
+  .concat(M.variants.map(v => `${M.review}/${v.href}`));
 
 let total = 0;
 for (const page of PAGES){

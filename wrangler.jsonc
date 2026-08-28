@@ -1,6 +1,11 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "charliepolito-hub",
+
+  // The Worker this repo actually deploys to. It was previously named
+  // "charliepolito-hub", which is not a Worker that exists on the account: a
+  // deploy with that name would have created a second Worker and pointed it at
+  // the routes below, leaving two Workers contending for charliepolito.com/.
+  "name": "portfolio2",
   "compatibility_date": "2026-08-01",
 
   // Static assets only. There is no Worker script: the hub is fully
@@ -11,10 +16,17 @@
     "not_found_handling": "404-page"
   },
 
-  // Only the two paths the hub actually serves are claimed, so the existing
-  // workers on /apex, /taxhaven, /trajectory and friends are untouched.
-  // Widening this to charliepolito.com/* would put this worker in front of
-  // all of them, so do that only after checking route precedence.
+  // Must be set explicitly. Wrangler infers workers_dev:false whenever routes
+  // are present and this key is absent, so leaving it out would take
+  // portfolio2.charlie-ca5.workers.dev offline on the next deploy - and that
+  // subdomain is the only place /preview is reachable.
+  "workers_dev": true,
+
+  // Only the two paths the hub actually serves on the public domain are
+  // claimed, so the existing Workers on /apex, /taxhaven, /trajectory and
+  // friends are untouched. Widening this to charliepolito.com/* would put this
+  // Worker in front of all of them - and would also expose /preview publicly,
+  // which is the one thing keeping the variant review off the real site.
   "routes": [
     { "pattern": "charliepolito.com/", "zone_name": "charliepolito.com" },
     { "pattern": "charliepolito.com/about", "zone_name": "charliepolito.com" }

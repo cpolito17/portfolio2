@@ -46,9 +46,8 @@ dist/           built output, gitignored
 
 Every page inlines only the CSS and JS it actually uses. The whole site is under
 100KB, so inlining removes every render-blocking request and makes each page a
-single cacheable file. `dist/preview.html` is the hub with the document wrapper
-stripped, for embedding in hosts that supply their own skeleton. The Worker does
-not serve it.
+single cacheable file. `/preview/embed` is the hub with the document wrapper
+stripped, for embedding in hosts that supply their own skeleton.
 
 ## Variants
 
@@ -66,46 +65,38 @@ render options. None of them can drift on content, because none of them own any.
 | `d` | **Orbit** — looking down on the ecliptic; apps share the inner planets' orbits |
 | `e` | **Constellation** — apps as stars at real altitudes, joined into one figure |
 
-`current` builds to `dist/index.html` and is what deploys. The rest build to
-`dist/<name>/index.html` and are claimed by no route in `wrangler.jsonc`, so they
-exist for review only. To review them locally, `npm run build` and open
-`dist/compare.html`, which frames every variant side by side at three viewport
-widths. `npm run shots` renders them all to `shots/` instead.
+`current` builds to `dist/index.html` and is the live site. Every variant,
+`current` included, is also built under `/preview/` for review.
 
-### Reviewing them in a browser
+To review locally, `npm run build` and open `dist/preview/index.html`, which frames
+every variant side by side at three viewport widths. `npm run shots` renders them
+all to `shots/` instead.
 
-`npm run deploy:preview` puts every variant on a throwaway Worker at its own
-workers.dev subdomain:
+### Reviewing them on the deployed Worker
 
-```bash
-npm run dev:preview      # locally, on http://localhost:8787
-npm run deploy:preview   # to portfolio2-variants.<subdomain>.workers.dev
-```
-
-It uses `wrangler.preview.jsonc`, which is deliberately kept apart from the
-production config: a different Worker name, `workers_dev` on, and **no routes at
-all**, so it cannot be placed in front of `charliepolito.com` or any of the
-Workers on `/apex`, `/taxhaven`, `/trajectory` and friends.
-
-A preview build (`PREVIEW=1`) differs from a production one in two ways: the
-picker takes the root and the live design moves to `/current/`, so the site opens
-on the comparison rather than on one of the things being compared; and each page
-gets a small fixed link back to the picker, injected at build time so no variant
-has to know the review harness exists.
+`npm run deploy` puts the review on the Worker alongside the live site:
 
 | | |
 |---|---|
-| `/` | the picker |
-| `/current`, `/a` … `/e` | one variant each |
+| `/` | the live design. Unchanged, byte for byte |
 | `/about` | the shared About page |
+| `/preview` | the picker |
+| `/preview/current`, `/preview/a` … `/preview/e` | one variant each |
+| `/preview/embed` | the wrapper-stripped hub, for embedding |
 
-Tear it down with `npx wrangler delete --config wrangler.preview.jsonc`.
+**`/preview` is reachable on the workers.dev subdomain and nowhere else.**
+`routes` claims only `charliepolito.com/` and `charliepolito.com/about`, so the
+public domain never routes `/preview` to this Worker at all. That is what makes it
+safe to ship the review next to the live site instead of standing up a second
+Worker — and it is another reason not to widen those routes to
+`charliepolito.com/*`.
 
-The About page is shared and unchanged across every variant, so the hand-off from a
-variant into About does not match it. That is expected while the hubs are under
-review.
+Pages under `/preview/` get a small fixed link back to the picker, injected at
+build time rather than written into any variant, so no variant has to know the
+review harness exists and `/` never shows it.
 
-To change which variant deploys, set `CURRENT` in `build.mjs`.
+To take the review down, delete `src/variants/` and the `REVIEW` block in
+`build.mjs`, or just stop deploying the branch.
 
 ### Sky render options
 

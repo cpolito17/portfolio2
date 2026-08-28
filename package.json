@@ -1,14 +1,11 @@
 {
-  "name": "charliepolito-hub",
+  "name": "portfolio2",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
     "dev": "node build.mjs && npx wrangler dev",
     "deploy": "node build.mjs && npx wrangler deploy",
-    "build:preview": "PREVIEW=1 node build.mjs",
-    "dev:preview": "PREVIEW=1 node build.mjs && npx wrangler dev --config wrangler.preview.jsonc",
-    "deploy:preview": "PREVIEW=1 node build.mjs && npx wrangler deploy --config wrangler.preview.jsonc",
     "shots": "node build.mjs && node shots.mjs",
     "audit": "node build.mjs && node audit.mjs"
   },
