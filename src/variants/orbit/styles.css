@@ -21,9 +21,10 @@
 }
 body.orbit{font-family:var(--font)}
 
-/* Comets cross the whole viewport, so their canvas is the viewport - above the
-   star field and the plot, under nothing. */
-#trail{position:fixed;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;
+/* Comets sit with the sky, below every content surface. On narrow layouts the
+   canvas becomes document-bound so a streak moves with the backdrop as the
+   app list scrolls instead of remaining pinned over the text. */
+#trail{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;
   image-rendering:pixelated;image-rendering:crisp-edges}
 
 .stage{position:relative;z-index:2;min-height:100vh;height:100vh;
@@ -236,6 +237,7 @@ body.orbit{font-family:var(--font)}
    plot between the header and the list without moving a single element. ── */
 @media (max-width:1080px){
   .orbit{--node-size:26px;--icon-size:18px}
+  #trail{position:absolute;inset:0 auto auto 0}
   .stage{
     display:grid;grid-template-columns:1fr;height:auto;min-height:100vh;
     background:linear-gradient(180deg,rgba(5,6,13,.82),rgba(5,6,13,.92))}

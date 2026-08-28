@@ -332,22 +332,33 @@
   }
 
   /* ── Comets ───────────────────────────────────────────────
-     These live on the viewport canvas, not the plot's: a shooting star crosses
-     the whole screen. One is seeded off one edge and aimed past the opposite
-     one, so it runs the full diagonal and leaves the far side rather than
-     expiring in the middle of the frame. */
+     These live on the sky canvas, not the plot's. On desktop that canvas is
+     viewport-sized. On a scrolling layout it spans the document and each new
+     comet is seeded around the currently visible part of that backdrop. */
   const tcv = document.getElementById('trail');
   const tctx = tcv.getContext('2d');
   let TW = 0, TH = 0;
 
   function sizeTrail(){
+    const documentBound = innerWidth <= 1080;
+    /* Remove the previous inline height before measuring so a tall canvas from
+       an earlier orientation cannot keep the document artificially tall. */
+    tcv.style.height = documentBound ? '0px' : '';
+    const pageHeight = documentBound
+      ? Math.max(innerHeight, document.documentElement.scrollHeight, document.body.scrollHeight)
+      : innerHeight;
+    tcv.style.height = documentBound ? `${pageHeight}px` : '';
     TW = Math.max(1, Math.round(innerWidth / DIV));
-    TH = Math.max(1, Math.round(innerHeight / DIV));
+    TH = Math.max(1, Math.round(pageHeight / DIV));
     tcv.width = TW; tcv.height = TH;
   }
 
   function spawnComet(){
-    const cx = TW/2, cy = TH/2, half = Math.hypot(TW, TH)/2;
+    const viewH = Math.max(1, innerHeight/DIV);
+    const viewTop = innerWidth <= 1080 ? scrollY/DIV : 0;
+    const cx = TW/2;
+    const cy = Math.max(viewH/2, Math.min(TH-viewH/2, viewTop+viewH/2));
+    const half = Math.hypot(TW, viewH)/2;
     const enter = Math.random()*Math.PI*2;
     /* Aim past the far side rather than at the centre, so the path is a long
        chord instead of a spoke through the middle. */
@@ -356,7 +367,7 @@
     const ex = cx + Math.cos(exit)*half*1.12,  ey = cy + Math.sin(exit)*half*1.12;
     const d = Math.hypot(ex-sx, ey-sy) || 1;
     const sp = 3.4 + Math.random()*1.6;               // ~8s to cross at 12fps
-    comets.push({ x:sx, y:sy, vx:(ex-sx)/d*sp, vy:(ey-sy)/d*sp,
+    comets.push({ x:sx, y:sy, vx:(ex-sx)/d*sp, vy:(ey-sy)/d*sp, cx, cy, half,
                   hue: Math.random() < 0.25 ? 'warm' : 'cool',
                   life: 0, trail: [] });
   }
@@ -440,11 +451,10 @@
 
     /* Comets and their sparks, on the viewport canvas. */
     tctx.clearRect(0, 0, TW, TH);
-    const margin = Math.hypot(TW, TH)*0.62;
     for (let i=comets.length-1; i>=0; i--){
       const c = comets[i];
       c.x += c.vx; c.y += c.vy; c.life++;
-      if (Math.hypot(c.x - TW/2, c.y - TH/2) > margin){ comets.splice(i, 1); continue; }
+      if (Math.hypot(c.x-c.cx, c.y-c.cy) > c.half*1.24){ comets.splice(i, 1); continue; }
       c.trail.push([c.x, c.y]); if (c.trail.length > 52) c.trail.shift();
       if (c.life % 3 === 0 && sparks.length < 90)
         sparks.push({ x:c.x, y:c.y, vx:-c.vx*0.18 + (Math.random()-.5)*0.9,

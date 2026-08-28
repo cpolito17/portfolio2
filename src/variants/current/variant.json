@@ -1,15 +1,8 @@
 {
-  "label": "Current",
+  "label": "Current · Aurora Nebula",
   "order": 10,
-  "blurb": "What is live today: dithered night sky, liquid-glass tiles, 4-column mixed-span grid.",
-  "css": [
-    "core/base.css",
-    "variants/current/styles.css"
-  ],
-  "js": [
-    "core/sky.js",
-    "core/apps.js",
-    "variants/current/hub.js",
-    "core/nav.js"
-  ]
+  "blurb": "The selected live design: orbit navigation in a mint and violet nebula with holographic details and layered pixel art.",
+  "html": "./src/variants/orbit/index.html",
+  "css": ["core/base.css", "variants/orbit/styles.css", "variants/v-aurora/styles.css"],
+  "js": ["variants/v-aurora/theme.js", "core/sky.js", "core/apps.js", "core/resume.js", "variants/orbit/hub.js", "core/nav.js"]
 }
