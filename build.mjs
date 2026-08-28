@@ -69,11 +69,13 @@ const fill = s => Object.entries(SUBST).reduce((a, [k, v]) => a.replace(k, () =>
    the files were written against that. */
 const bundleJS  = list => list.map(f => `<script>${fill(read('./src/' + f))}</script>`).join('\n');
 const bundleCSS = list => list.map(f => read('./src/' + f)).join('\n');
+const MONO_LINK = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap">';
 
 function render(shell, css, js){
-  const out = read(shell)
-    .replace('__STYLES__',  () => bundleCSS(css))
+  let out = read(shell)
+    .replace('__STYLES__',  () => bundleCSS([...css, 'core/type.css']))
     .replace('__SCRIPTS__', () => bundleJS(js));
+  if (!out.includes('family=JetBrains+Mono')) out = out.replace('</head>', MONO_LINK + '\n</head>');
   const left = out.replace('__PROSE__', '').match(/__[A-Z]+__/g);
   if (left) throw new Error(`${shell}: unfilled placeholders ${[...new Set(left)].join(', ')}`);
   return out;

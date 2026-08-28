@@ -8,6 +8,7 @@
   if (!shell) return;
 
   document.addEventListener('click', e => {
+    if (e.defaultPrevented) return;
     const a = e.target.closest('a[href]');
     if (!a || a.target === '_blank' || e.metaKey || e.ctrlKey || e.shiftKey) return;
     let url;

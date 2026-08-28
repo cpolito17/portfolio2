@@ -14,6 +14,8 @@
      byte at runtime. */
   const THEME = Object.assign({
     plate:[30,42,72], grain:16, motion:1, sunSize:1, sunActivity:1,
+    effects:{ energyPulse:false, parallax:false, launch:false, hologram:false },
+    parallaxRange:9, energyRgb:[105,240,210], energyAltRgb:[169,139,255], launchMs:560,
     sunRamp:[[255,248,222],[255,232,168],[236,190,116],[178,136,78]],
     planetRamp:[[214,228,255],[150,178,226],[96,124,176],[60,82,124]],
     cometCool:[[255,255,255],[214,232,255],[150,186,246],[86,126,196]],
@@ -23,6 +25,7 @@
     orbitActive:'rgba(232,193,112,.9)', orbitIdle:'rgba(150,170,210,.4)',
     orbitFaint:'rgba(150,170,210,.26)'
   }, window.ORBIT_THEME || {});
+  const FX = THEME.effects || {};
 
   /* ═══ 1. Rings ════════════════════════════════════════════
      Radii are logarithmic in semi-major axis. A linear plot is technically
@@ -460,7 +463,26 @@
   }
 
   /* ═══ 8. Draw ═════════════════════════════════════════════ */
-  let active = -1, clock = 0;
+  let active = -1, clock = 0, energyPulse = null;
+  const parallax = { x:0, y:0, tx:0, ty:0 };
+
+  if (FX.parallax && !reduce){
+    addEventListener('pointermove', e => {
+      parallax.tx = (e.clientX / Math.max(1, innerWidth)  - .5) * 2;
+      parallax.ty = (e.clientY / Math.max(1, innerHeight) - .5) * 2;
+    }, { passive:true });
+    document.documentElement.addEventListener('mouseleave', () => {
+      parallax.tx = 0; parallax.ty = 0;
+    });
+  }
+
+  function stepParallax(){
+    if (!FX.parallax || reduce) return;
+    parallax.x += (parallax.tx - parallax.x) * .14;
+    parallax.y += (parallax.ty - parallax.y) * .14;
+    document.body.style.setProperty('--nebula-x', `${(-parallax.x * THEME.parallaxRange).toFixed(2)}px`);
+    document.body.style.setProperty('--nebula-y', `${(-parallax.y * THEME.parallaxRange).toFixed(2)}px`);
+  }
 
   const longitude = name => {
     const p = helio(name, T_CENT);
@@ -508,6 +530,38 @@
     }
   }
 
+  /* A short packet travels from the index to the selected orbital body. It is
+     drawn on the existing viewport trail canvas, after comets, so no new
+     compositing layer or pointer target is introduced. */
+  function drawEnergyPulse(dt){
+    if (!energyPulse || reduce || innerWidth <= 1080){ energyPulse = null; return; }
+    energyPulse.age += dt;
+    const i=energyPulse.i, row=rows[i], node=nodes[i];
+    if(!row || !node){ energyPulse=null; return; }
+    const a=row.getBoundingClientRect(), b=node.getBoundingClientRect();
+    const sx=a.right, sy=a.top+a.height/2, ex=b.left+b.width/2, ey=b.top+b.height/2;
+    const cx=sx+(ex-sx)*.52, cy=sy-(Math.min(150,Math.abs(ex-sx)*.14));
+    const p=Math.min(1,energyPulse.age/energyPulse.dur);
+    const head=1-Math.pow(1-p,3), tail=Math.max(0,head-.24);
+    const kx=TW/Math.max(1,innerWidth), ky=TH/Math.max(1,innerHeight);
+    const rgb=THEME.energyRgb, alt=THEME.energyAltRgb;
+    for(let t=tail;t<=head;t+=.012){
+      const u=1-t;
+      const x=(u*u*sx+2*u*t*cx+t*t*ex)*kx;
+      const y=(u*u*sy+2*u*t*cy+t*t*ey)*ky;
+      const fade=(t-tail)/Math.max(.001,head-tail);
+      const col=fade>.68?rgb:alt, ix=Math.round(x), iy=Math.round(y);
+      if(ix<0||iy<0||ix>=TW||iy>=TH||BAY[iy&7][ix&7]>.28+fade*.7)continue;
+      tctx.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},${(.18+fade*.72).toFixed(3)})`;
+      tctx.fillRect(ix,iy,fade>.82?2:1,fade>.82?2:1);
+    }
+    const u=1-head,hx=Math.round((u*u*sx+2*u*head*cx+head*head*ex)*kx);
+    const hy=Math.round((u*u*sy+2*u*head*cy+head*head*ey)*ky);
+    tctx.fillStyle=`rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+    tctx.fillRect(hx-1,hy,3,1);tctx.fillRect(hx,hy-1,1,3);
+    if(p>=1)energyPulse=null;
+  }
+
   /* ═══ 9. Selection ════════════════════════════════════════ */
   const IDLE = `<div class="det-in"><p class="det-idle"><b>Eleven apps.</b>
     Each one started as a problem I wanted solved for myself. Pick one from the
@@ -515,6 +569,8 @@
 
   function select(i){
     if (i === active) return;
+    if(FX.energyPulse && !reduce && i>=0 && innerWidth>1080)
+      energyPulse={i,age:0,dur:.88};
     active = i;
     rows.forEach((el, k) => el.dataset.on = String(k === i));
     nodes.forEach((el, k) => el.dataset.on = String(k === i));
@@ -526,6 +582,13 @@
     const s = seats[i], a = s.app;
     detail.innerHTML = `
       <div class="det-in">
+        ${FX.hologram ? `<div class="det-holo" data-app="${a.id}" aria-hidden="true">
+          <span class="holo-orbit holo-orbit-a"></span>
+          <span class="holo-orbit holo-orbit-b"></span>
+          <span class="holo-icon">${iconSVG(a.id)}</span>
+          <span class="holo-axis"></span>
+          <span class="holo-code">${a.id.toUpperCase()}</span>
+        </div>` : ''}
         <h2 class="det-name">${a.name}</h2>
         <p class="det-desc">${a.desc}</p>
         ${a.note ? `<p class="det-note">${a.note}</p>` : ''}
@@ -581,6 +644,42 @@
     rows[Math.max(0, Math.min(rows.length-1, to))].focus();
   });
 
+  /* App launch: collapse the current star field toward the chosen body, then
+     navigate. Modified clicks retain native new-tab behaviour. */
+  let launching=false;
+  const launchVeil=document.createElement('div');
+  launchVeil.className='launch-veil';launchVeil.setAttribute('aria-hidden','true');
+  if(FX.launch)document.body.appendChild(launchVeil);
+
+  function launchTo(i,href){
+    if(launching)return;
+    launching=true;held=true;select(i);energyPulse=null;
+    const r=nodes[i]?.getBoundingClientRect();
+    const x=r?r.left+r.width/2:innerWidth/2,y=r?r.top+r.height/2:innerHeight/2;
+    document.body.style.setProperty('--launch-x',`${x}px`);
+    document.body.style.setProperty('--launch-y',`${y}px`);
+    nodes[i]?.classList.add('is-launching');
+    requestAnimationFrame(()=>document.body.classList.add('is-launching'));
+    setTimeout(()=>{location.href=href},THEME.launchMs);
+  }
+
+  document.addEventListener('click',e=>{
+    if(!FX.launch||reduce||launching||e.defaultPrevented||e.button!==0||
+       e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
+    const a=e.target.closest('a[href]');
+    if(!a||a.target==='_blank'||a.hasAttribute('download'))return;
+    let url;try{url=new URL(a.href,location.href)}catch{return}
+    const i=ORDER.findIndex(app=>new URL(app.url,location.href).href===url.href);
+    if(i<0)return;
+    e.preventDefault();launchTo(i,url.href);
+  });
+
+  addEventListener('pageshow',e=>{
+    if(!e.persisted)return;
+    launching=false;held=false;document.body.classList.remove('is-launching');
+    nodes.forEach(n=>n.classList.remove('is-launching'));
+  });
+
   /* ═══ 10. About ═══════════════════════════════════════════ */
   const about = document.getElementById('about');
   const aboutBody = document.getElementById('aboutBody');
@@ -588,24 +687,32 @@
   const backBtn = document.getElementById('aboutBack');
 
   aboutBody.innerHTML = `
-    <h2>${RESUME.name}</h2>
-    <p class="ab-lede">${RESUME.lede}</p>
-    <p class="ab-intro">${RESUME.intro}</p>
-    <h3>Work</h3>
-    ${RESUME.roles.map(r => `
-      <article class="ab-role">
-        <div class="ab-role-head">
-          <h4>${r.org}</h4><span class="ab-role-meta">${r.meta}</span>
-        </div>
-        <ul>${r.bullets.map(b => `<li>${b}</li>`).join('')}</ul>
-      </article>`).join('')}
-    <h3>What I work in</h3>
-    ${RESUME.skills.map(s => `
-      <div class="ab-skill"><h4>${s.title}</h4><p>${s.items}</p></div>`).join('')}
-    <h3>Get in touch</h3>
-    <div class="ab-links">${RESUME.links.map(l =>
-      `<a href="${l.url}"${l.external ? ' target="_blank" rel="noopener noreferrer"' : ''}>${l.label}</a>`
-    ).join('')}</div>`;
+    <div class="ab-intro-block">
+      <h2>${RESUME.name}</h2>
+      <p class="ab-lede">${RESUME.lede}</p>
+      <p class="ab-intro">${RESUME.intro}</p>
+    </div>
+    <div class="ab-grid">
+      <section class="ab-work">
+        <h3>Work</h3>
+        ${RESUME.roles.map(r => `
+          <article class="ab-role">
+            <div class="ab-role-head">
+              <h4>${r.org}</h4><span class="ab-role-meta">${r.meta}</span>
+            </div>
+            <ul>${r.bullets.map(b => `<li>${b}</li>`).join('')}</ul>
+          </article>`).join('')}
+      </section>
+      <section class="ab-secondary">
+        <h3>What I work in</h3>
+        ${RESUME.skills.map(s => `
+          <div class="ab-skill"><h4>${s.title}</h4><p>${s.items}</p></div>`).join('')}
+        <h3>Get in touch</h3>
+        <div class="ab-links">${RESUME.links.map(l =>
+          `<a href="${l.url}"${l.external ? ' target="_blank" rel="noopener noreferrer"' : ''}>${l.label}</a>`
+        ).join('')}</div>
+      </section>
+    </div>`;
 
   const side = document.querySelector('.side');
   let aboutOpen = false;
@@ -664,6 +771,8 @@
     draw();
     stepTraffic(reduce ? 0 : dt * THEME.motion);
     placeNodes();
+    drawEnergyPulse(dt);
+    stepParallax();
   }
 
   layout();

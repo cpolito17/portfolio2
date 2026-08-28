@@ -99,6 +99,7 @@ body.orbit{font-family:var(--font)}
   text-decoration:none;border-bottom:1px solid rgba(232,193,112,.45);padding-bottom:.15rem}
 .det-idle{margin:0;font-size:.76rem;line-height:1.65;color:var(--ink-3)}
 .det-idle b{display:block;color:var(--ink-2);font-weight:500;margin-bottom:.4rem}
+.det-holo{display:none}
 
 /* ── About, over the whole side panel ─────────────────────── */
 .about{
@@ -144,6 +145,33 @@ body.orbit{font-family:var(--font)}
   transition:border-color .18s ease,color .18s ease}
 .ab-links a:hover{border-color:var(--accent);color:var(--accent)}
 .ab-links a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ab-intro-block{max-width:58ch}
+.ab-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(12rem,.85fr);
+  gap:clamp(.9rem,2vw,1.35rem);align-items:start}
+.ab-grid h3{margin-top:clamp(.75rem,1.6vh,1.2rem)}
+
+@media (min-width:1081px){
+  .about{gap:clamp(.45rem,1.2vh,.9rem);
+    padding-top:clamp(.8rem,2.4vh,1.7rem);padding-bottom:clamp(.65rem,1.8vh,1.1rem)}
+  /* The two-column composition is sized to fit normal desktop heights. Keep
+     scrolling available for short windows, but remove the persistent rail. */
+  .about-scroll{overflow-y:auto;padding-right:0;scrollbar-width:none}
+  .about-scroll::-webkit-scrollbar{display:none}
+  .about-scroll h2{font-size:clamp(1.05rem,2.1vh,1.35rem);margin-bottom:clamp(.25rem,.7vh,.5rem)}
+  .about-scroll h3{font-size:clamp(.58rem,1vh,.68rem);margin-bottom:clamp(.35rem,.8vh,.7rem)}
+  .ab-lede{font-size:clamp(.68rem,1.22vh,.83rem);line-height:1.48;margin-bottom:clamp(.35rem,.8vh,.7rem)}
+  .ab-intro{font-size:clamp(.64rem,1.12vh,.78rem);line-height:1.5}
+  .ab-role{margin-bottom:clamp(.5rem,1.2vh,1rem)}
+  .ab-role-head{margin-bottom:clamp(.18rem,.55vh,.4rem)}
+  .ab-role-head h4{font-size:clamp(.7rem,1.2vh,.86rem)}
+  .ab-role-meta{font-size:clamp(.56rem,.95vh,.66rem)}
+  .ab-role ul{gap:clamp(.15rem,.5vh,.32rem)}
+  .ab-role li{font-size:clamp(.61rem,1.03vh,.74rem);line-height:1.42}
+  .ab-skill{margin-bottom:clamp(.4rem,.9vh,.72rem)}
+  .ab-skill h4{font-size:clamp(.62rem,1.02vh,.74rem)}
+  .ab-skill p{font-size:clamp(.58rem,.95vh,.7rem);line-height:1.42}
+  .ab-links{gap:.35rem}.ab-links a{font-size:clamp(.58rem,.95vh,.7rem);padding:.28rem .58rem}
+}
 
 /* ── The plot ─────────────────────────────────────────────── */
 .plot{position:relative;min-width:0;min-height:0}
@@ -222,6 +250,7 @@ body.orbit{font-family:var(--font)}
      carries its own copy and the detail column goes away. */
   .detail{display:none}
   .about{position:fixed;inset:0;z-index:20;padding:1.5rem 1.25rem 1rem}
+  .ab-grid{display:block}
 
   /* Smaller stage, smaller furniture. The node labels come off entirely:
      eleven of them orbiting inside a band this size collide with each other and

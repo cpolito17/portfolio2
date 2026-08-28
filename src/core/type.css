@@ -1,0 +1,9 @@
+/* One type system across every design variant. The important family override
+   intentionally neutralizes experimental serif/sans choices while preserving
+   each variant's size, weight, spacing, and hierarchy. */
+:root,body{
+  --font:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;
+  --sans:var(--font)!important;
+  --serif:var(--font)!important;
+}
+body,body *{font-family:var(--font)!important}

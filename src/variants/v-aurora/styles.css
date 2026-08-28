@@ -2,13 +2,15 @@
 body.orbit{
   --ink:#f5fbff;--ink-2:rgba(229,244,255,.72);--ink-3:rgba(214,232,245,.48);
   --ground:#020711;--accent:#69f0d2;
-  --font:Inter,Avenir,"Segoe UI",ui-sans-serif,system-ui,sans-serif;
-  --node-size:36px;--icon-size:24px;
+  --node-size:48px;--icon-size:34px;
+  --nebula-x:0px;--nebula-y:0px;--launch-x:50vw;--launch-y:50vh;
   background:
     radial-gradient(circle at 78% 18%,rgba(112,76,204,.2),transparent 32%),
     radial-gradient(circle at 35% 82%,rgba(45,196,177,.14),transparent 35%),var(--ground);
 }
-.orbit #sky{filter:saturate(1.28) contrast(1.04)}
+.orbit #sky{filter:saturate(1.28) contrast(1.04);
+  transform:translate3d(var(--nebula-x),var(--nebula-y),0) scale(1.06);
+  transform-origin:center;will-change:transform;transition:transform .12s linear}
 .orbit .stage::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background:linear-gradient(118deg,transparent 42%,rgba(126,246,221,.035) 50%,transparent 58%);
   animation:aurora-sweep 12s ease-in-out infinite alternate}
@@ -21,7 +23,35 @@ body.orbit{
 .orbit .row[data-on="true"]{letter-spacing:.015em;box-shadow:inset 0 0 22px rgba(77,235,205,.06)}
 .orbit .row-num{font-variant-numeric:tabular-nums}
 .orbit .detail{border-left-color:rgba(120,236,218,.12)}
+.orbit .detail{position:relative;overflow:hidden}
+.orbit .detail::before{content:"";position:absolute;inset:8% 0;pointer-events:none;opacity:.16;
+  background:repeating-linear-gradient(0deg,transparent 0 7px,rgba(105,240,210,.14) 8px),
+    linear-gradient(90deg,transparent,rgba(169,139,255,.1),transparent);
+  -webkit-mask-image:linear-gradient(transparent,#000 18%,#000 82%,transparent);
+  mask-image:linear-gradient(transparent,#000 18%,#000 82%,transparent)}
+.orbit .detail>*{position:relative;z-index:1}
 .orbit .det-meta{border-top-color:rgba(139,226,226,.13)}
+.orbit .det-holo{height:clamp(5.2rem,13vh,7.2rem);margin:0 0 clamp(.8rem,2vh,1.2rem);
+  display:grid;place-items:center;position:relative;overflow:hidden;
+  border:1px solid rgba(105,240,210,.2);border-radius:.65rem;
+  background:radial-gradient(circle,rgba(105,240,210,.11),transparent 58%),
+    linear-gradient(135deg,rgba(169,139,255,.07),rgba(5,18,34,.22));
+  box-shadow:inset 0 0 25px rgba(105,240,210,.05)}
+.orbit .det-holo::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,transparent 0 44%,rgba(105,240,210,.22) 50%,transparent 56%);
+  animation:holo-scan 3.4s linear infinite}
+.orbit .holo-icon{position:relative;z-index:2;display:grid;place-items:center;
+  width:3.25rem;height:3.25rem;filter:drop-shadow(0 0 8px rgba(105,240,210,.45))}
+.orbit .holo-icon svg{width:2.7rem;height:2.7rem;image-rendering:pixelated}
+.orbit .holo-orbit{position:absolute;border:1px solid rgba(105,240,210,.25);
+  border-radius:50%;transform:rotate(-18deg)}
+.orbit .holo-orbit-a{width:74%;height:42%;animation:holo-orbit 9s linear infinite}
+.orbit .holo-orbit-b{width:48%;height:68%;border-color:rgba(169,139,255,.25);
+  animation:holo-orbit 12s linear infinite reverse}
+.orbit .holo-axis{position:absolute;width:86%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(105,240,210,.28),transparent)}
+.orbit .holo-code{position:absolute;right:.45rem;bottom:.32rem;font-size:.48rem;
+  letter-spacing:.12em;color:rgba(105,240,210,.45)}
 .orbit .about{background:linear-gradient(100deg,rgba(3,10,24,.985),rgba(14,35,50,.96));
   backdrop-filter:blur(20px)}
 .orbit .node-dot{border-color:rgba(190,224,255,.2);background:rgba(8,22,41,.72);
@@ -49,5 +79,20 @@ body.orbit{
 @keyframes aurora-breathe{50%{box-shadow:0 0 30px rgba(105,240,210,.2),0 0 55px rgba(128,93,231,.12)}}
 @keyframes aurora-sweep{to{transform:translateX(8%)}}
 @keyframes aurora-corona-turn{to{transform:rotate(360deg)}}
+@keyframes holo-scan{from{transform:translateY(-60%)}to{transform:translateY(60%)}}
+@keyframes holo-orbit{to{transform:rotate(342deg)}}
+
+.orbit .launch-veil{position:fixed;inset:0;z-index:120;pointer-events:none;opacity:0;
+  background:
+    radial-gradient(circle at var(--launch-x) var(--launch-y),
+      rgba(255,255,255,.95) 0 2px,rgba(105,240,210,.48) 3px,
+      rgba(169,139,255,.18) 8%,rgba(2,7,17,.72) 28%,rgba(2,7,17,.98) 72%)}
+body.orbit.is-launching .launch-veil{animation:launch-veil .56s cubic-bezier(.55,0,.68,.19) both}
+body.orbit.is-launching .stage{animation:launch-field .56s cubic-bezier(.55,0,.68,.19) both}
+.orbit .node.is-launching .node-dot{animation:launch-node .56s cubic-bezier(.16,1,.3,1) both}
+@keyframes launch-veil{0%{opacity:0}24%{opacity:.26}100%{opacity:1}}
+@keyframes launch-field{to{filter:blur(5px) brightness(.5);transform:scale(1.035);opacity:.18}}
+@keyframes launch-node{45%{filter:brightness(2.2);box-shadow:0 0 0 8px rgba(105,240,210,.18),
+  0 0 40px rgba(169,139,255,.7)}100%{filter:brightness(3);transform:scale(.2);opacity:0}}
 @media (max-width:1080px){body.orbit{--node-size:32px;--icon-size:22px}}
 @media (max-width:520px){body.orbit{--node-size:29px;--icon-size:20px}}
