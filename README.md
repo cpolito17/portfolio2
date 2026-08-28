@@ -38,7 +38,7 @@ src/
   compare.html  the review picker
   data/
     stars.txt   2,887 stars to magnitude 5.5, from the Yale Bright Star Catalogue
-    icons.json  16x16 pixel icons, one per app
+    icons.json  24x24 pixel icons, one per app plus About
 build.mjs       inlines everything into dist/
 shots.mjs       renders every variant at 1440, 820 and 390 into shots/
 dist/           built output, gitignored

@@ -16,6 +16,7 @@
    size, so the scale below is set a notch tighter to keep the same line counts. */
 .orbit{
   --idx:19rem; --det:17rem;
+  --node-size:28px; --icon-size:19px;
   --font:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 body.orbit{font-family:var(--font)}
@@ -151,7 +152,7 @@ body.orbit{font-family:var(--font)}
 .nodes{position:absolute;inset:0;list-style:none;margin:0;padding:0}
 
 .node{
-  position:absolute;left:0;top:0;width:28px;height:28px;display:block;
+  position:absolute;left:0;top:0;width:var(--node-size);height:var(--node-size);display:block;
   text-decoration:none;color:var(--ink-3);
 }
 .node-dot{
@@ -159,7 +160,7 @@ body.orbit{font-family:var(--font)}
   background:rgba(8,10,20,.78);border:1px solid rgba(255,255,255,.16);
   /* Colour and glow only. No transform: these are moving targets. */
   transition:border-color .2s ease-out,background-color .2s ease-out,box-shadow .2s ease-out}
-.node-dot svg{width:19px;height:19px;display:block;image-rendering:pixelated}
+.node-dot svg{width:var(--icon-size);height:var(--icon-size);display:block;image-rendering:pixelated}
 .node-name{
   position:absolute;top:calc(100% + .28rem);left:50%;transform:translateX(-50%);
   width:8.5rem;text-align:center;font-size:.58rem;line-height:1.25;
@@ -198,6 +199,7 @@ body.orbit{font-family:var(--font)}
    children become grid items of .stage directly, and `order` interleaves the
    plot between the header and the list without moving a single element. ── */
 @media (max-width:1080px){
+  .orbit{--node-size:26px;--icon-size:18px}
   .stage{
     display:grid;grid-template-columns:1fr;height:auto;min-height:100vh;
     background:linear-gradient(180deg,rgba(5,6,13,.82),rgba(5,6,13,.92))}
@@ -225,16 +227,13 @@ body.orbit{font-family:var(--font)}
      eleven of them orbiting inside a band this size collide with each other and
      with the sun on every frame, and the list directly below already names
      every app. The icons stay as bodies; selecting one lights its row. */
-  .node{width:26px;height:26px}
-  .node-dot svg{width:17px;height:17px}
   .node-name{display:none}
   .star{--star:44px;z-index:2}
   .star-label{font-size:.55rem;letter-spacing:.12em}
 }
 @media (max-width:520px){
   .plot{height:38vh}
-  .node{width:24px;height:24px}
-  .node-dot svg{width:15px;height:15px}
+  .orbit{--node-size:24px;--icon-size:16px}
 }
 
 @media (prefers-reduced-motion:reduce){

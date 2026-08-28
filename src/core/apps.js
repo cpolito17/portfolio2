@@ -5,16 +5,22 @@
    may honour or ignore. */
 const ICONS = __ICONS__;
 
-const PAL = { '1':'#E8EDF7','2':'#9AA6C4','3':'#4A5578','4':'#E8C170' };
+/* Six Aurora colours give the 24px sprites enough range for readable depth
+   while keeping every icon inside one shared visual system. */
+const PAL = {
+  '1':'#F2FAFF', '2':'#9FB5D4', '3':'#40527C',
+  '4':'#69F0D2', '5':'#A98BFF', '6':'#FFCE7A'
+};
 function iconSVG(name){
   const rows = ICONS[name]; if (!rows) return '';
+  const h = rows.length, w = Math.max(...rows.map(row => row.length));
   let r = '';
-  for (let y=0;y<16;y++) for (let x=0;x<16;x++){
+  for (let y=0;y<h;y++) for (let x=0;x<w;x++){
     const c = rows[y][x];
     if (c === '.') continue;
     r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${PAL[c]}"/>`;
   }
-  return `<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+  return `<svg viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
 }
 
 const APPS = {

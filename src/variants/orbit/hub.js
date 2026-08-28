@@ -13,7 +13,7 @@
      forking the orbit behaviour. An absent config preserves Orbit byte-for-
      byte at runtime. */
   const THEME = Object.assign({
-    plate:[30,42,72], grain:16, motion:1,
+    plate:[30,42,72], grain:16, motion:1, sunSize:1, sunActivity:1,
     sunRamp:[[255,248,222],[255,232,168],[236,190,116],[178,136,78]],
     planetRamp:[[214,228,255],[150,178,226],[96,124,176],[60,82,124]],
     cometCool:[[255,255,255],[214,232,255],[150,186,246],[86,126,196]],
@@ -148,6 +148,7 @@
   const ctx  = cv.getContext('2d');
   const starBtn = document.getElementById('star');
   let CX = 0, CY = 0, R = 0, w = 0, h = 0, KX = 1, KY = 1, BW = 0, BH = 0;
+  let NODE_HALF = 14;
 
   /* The canvas is a rounded-down fraction of the box it is stretched over, so
      canvas pixels and CSS pixels are only the same size when the box divides
@@ -166,6 +167,7 @@
     h = Math.max(1, Math.round(BH / DIV));
     cv.width = w; cv.height = h;
     KX = w / BW; KY = h / BH;
+    NODE_HALF = (nodes[0]?.getBoundingClientRect().width || 28) / 2;
     const star = starBtn.getBoundingClientRect().width || 72;
     starBtn.style.transform = `translate(${CX - star/2}px, ${CY - star/2}px)`;
   }
@@ -212,6 +214,87 @@
 
   const SUN_RAMP  = THEME.sunRamp;
   const PLAN_RAMP = THEME.planetRamp;
+
+  /* The sun is a sphere, not a radial blob. A dithered corona sits behind a
+     limb-darkened surface. Latitude bands, rotating granulation, and three
+     shallow sunspots give the tiny pixel disc several visible depth layers. */
+  function drawSun(cx, cy, rad){
+    const activity = THEME.sunActivity;
+    const spin = clock * 0.055 * THEME.motion;
+
+    /* Uneven corona filaments. The golden-angle spacing avoids a regular star
+       polygon while keeping the result deterministic from frame to frame. */
+    for (let i=0; i<44; i++){
+      const a = i * 2.399963 + spin * 0.18;
+      const reach = rad * (1.28 + ((i * 17) % 13) / 20 * activity);
+      const col = SUN_RAMP[Math.min(SUN_RAMP.length - 1, 1 + (i % 2))];
+      for (let d=rad*1.03; d<reach; d+=0.72){
+        const fade = 1 - (d-rad) / Math.max(1, reach-rad);
+        const x = Math.round(cx + Math.cos(a) * d);
+        const y = Math.round(cy + Math.sin(a) * d);
+        if (x<0 || y<0 || x>=w || y>=h || fade*fade < BAY[y&7][x&7]) continue;
+        ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${(.08 + fade*.2).toFixed(3)})`;
+        ctx.fillRect(x, y, 1, 1);
+      }
+    }
+
+    /* Three low prominences loop beyond the limb. They stay sparse and slow,
+       so the sun gains a second silhouette without turning into a fireball. */
+    for(let i=0;i<3;i++){
+      const base=spin*.12+i*2.11+.35;
+      const col=SUN_RAMP[Math.min(2,SUN_RAMP.length-1)];
+      for(let j=0;j<=18;j++){
+        const t=j/18, a=base+(t-.5)*.72;
+        const d=rad*(1.03+Math.sin(Math.PI*t)*(.18+.05*i)*activity);
+        const x=Math.round(cx+Math.cos(a)*d),y=Math.round(cy+Math.sin(a)*d);
+        if(x<0||y<0||x>=w||y>=h||BAY[y&7][x&7]>.72)continue;
+        ctx.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},${(.2+Math.sin(Math.PI*t)*.34).toFixed(3)})`;
+        ctx.fillRect(x,y,1,1);
+      }
+    }
+
+    /* A soft subsurface bloom remains visible between the corona and sphere. */
+    disc(cx, cy, rad*.98, SUN_RAMP, 1.62);
+
+    const spots = [
+      [spin + .45, -.25, .19],
+      [spin + 2.55,  .20, .14],
+      [spin + 4.35, -.03, .11]
+    ];
+    const x0=Math.floor(cx-rad), x1=Math.ceil(cx+rad);
+    const y0=Math.floor(cy-rad), y1=Math.ceil(cy+rad);
+    for(let y=y0;y<=y1;y++) for(let x=x0;x<=x1;x++){
+      const nx=(x+.5-cx)/rad, ny=(y+.5-cy)/rad;
+      const rr=nx*nx+ny*ny;
+      if(rr>1) continue;
+      const nz=Math.sqrt(Math.max(0,1-rr));
+
+      /* The virtual light is above and left. nz provides true limb darkening. */
+      let light=.18 + .58*nz + .18*Math.max(0,-nx*.55-ny*.72+nz*.45);
+      const lon=Math.atan2(nx,nz)+spin, lat=Math.asin(Math.max(-1,Math.min(1,ny)));
+      const granule=Math.sin(lon*15+lat*9)*.055 + Math.sin(lon*29-lat*17)*.035;
+      const plasma=Math.sin(lat*22 + Math.sin(lon*4)*1.4)*.035;
+      light += granule + plasma;
+
+      /* Spots travel across the visible hemisphere as the texture rotates.
+         A thin bright rim on their lit side keeps them from reading as holes. */
+      for(const [phase,sy,size] of spots){
+        const sx=Math.sin(phase)*.62, visible=.28+.72*Math.max(0,Math.cos(phase));
+        const dx=nx-sx, dy=ny-sy, d=Math.hypot(dx,dy);
+        const reach=size*(.45+.55*visible);
+        if(d<reach) light-=.34*(1-d/reach)*visible;
+        else if(d<reach*1.35 && dx<0) light+=.09*(1-(d-reach)/(reach*.35))*visible;
+      }
+
+      light=Math.max(0,Math.min(1,light));
+      const pos=(1-light)*(SUN_RAMP.length-1);
+      let ci=Math.floor(pos);
+      if(BAY[y&7][x&7] < pos-ci) ci++;
+      const col=SUN_RAMP[Math.min(SUN_RAMP.length-1,ci)];
+      ctx.fillStyle=`rgb(${col[0]},${col[1]},${col[2]})`;
+      ctx.fillRect(x,y,1,1);
+    }
+  }
 
   /* ═══ 7. Traffic ═════════════════════════════════════════ */
 
@@ -277,21 +360,43 @@
      keeps it from reading as a straight line with a dot on the end. */
   function drawComet(c){
     const ramp = c.hue === 'warm' ? WARM : COOL;
+    const speed = Math.hypot(c.vx,c.vy) || 1;
+    const pxn = -c.vy/speed, pyn = c.vx/speed;
     for (let i=0; i<c.trail.length; i++){
       const f = (i+1)/c.trail.length;                 // 1 at the head
-      const px = c.trail[i][0]|0, py = c.trail[i][1]|0;
+      const wave = Math.sin(i*.72 + c.life*.16) * (1-f) * 1.5;
+      const px = Math.round(c.trail[i][0] + pxn*wave);
+      const py = Math.round(c.trail[i][1] + pyn*wave);
       if (px < -4 || py < -4 || px > TW+4 || py > TH+4) continue;
       if (f*f*2.6 <= BAY[py & 7][px & 7]) continue;
       /* Cool quickly off the head so only the tip is white: holding white for
          the first third of the streak reads as a solid bar rather than a
          shooting star. */
       const col = ramp[Math.min(ramp.length-1, ((1-f)*1.7*ramp.length)|0)];
-      const wpx = f > 0.93 ? 2 : 1;
-      tctx.fillStyle = `rgb(${col[0]},${col[1]},${col[2]})`;
-      tctx.fillRect(px, py, wpx, wpx);
+      /* A low-alpha sheath gives the streak volume. A narrow offset filament
+         inside it produces the plasma-ribbon look without a bright solid bar. */
+      if(f>.18){
+        const glow=ramp[ramp.length-1], a=.035+f*.12;
+        tctx.fillStyle=`rgba(${glow[0]},${glow[1]},${glow[2]},${a.toFixed(3)})`;
+        const gw=f>.78?2:1;
+        tctx.fillRect(px-gw,py-gw,gw*2+1,gw*2+1);
+      }
+      tctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${(.32+f*.68).toFixed(3)})`;
+      tctx.fillRect(px, py, f>.9?2:1, f>.9?2:1);
+      if(f>.36 && (i&1)===0){
+        const side=(1-f)*2.2;
+        tctx.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},${(f*.38).toFixed(3)})`;
+        tctx.fillRect(Math.round(px+pxn*side),Math.round(py+pyn*side),1,1);
+      }
     }
-    tctx.fillStyle = THEME.cometHead;
-    tctx.fillRect((c.x-1)|0, (c.y-1)|0, 3, 3);
+    /* A compact cross flare reads as a fast luminous body, not another dot in
+       the trail. It remains only three low-resolution pixels across. */
+    const hx=Math.round(c.x),hy=Math.round(c.y);
+    const head=ramp[0];
+    tctx.fillStyle=`rgba(${head[0]},${head[1]},${head[2]},.2)`;
+    tctx.fillRect(hx-2,hy-2,5,5);
+    tctx.fillStyle=THEME.cometHead;
+    tctx.fillRect(hx-1,hy,3,1);tctx.fillRect(hx,hy-1,1,3);
   }
 
   function stepTraffic(dt){
@@ -362,14 +467,14 @@
 
   function draw(){
     ctx.clearRect(0, 0, w, h);
-    const cx = CX/DIV, cy = CY/DIV;
+    const cx = cvX(CX), cy = cvY(CY);
 
     /* Bodies are sized against the plot, not in fixed pixels: a sun that reads
        right against a 360px orbit is a third of the way to the rings on a
        phone. Mercury's track is dropped once it would sit inside the sun's
        own bloom. */
     const RC = cvX(R);
-    const sunR   = Math.max(3.2, Math.min(6.2, RC*0.05));
+    const sunR   = Math.max(4.2, Math.min(10.5, RC*0.085)) * THEME.sunSize;
     const planR  = Math.max(1.4, Math.min(2.4, RC*0.018));
     if (RC > 60) ring(cx, cy, cvX(MERCURY.f*R), THEME.orbitFaint, 0.5);
     RINGS.forEach((rg, i) => {
@@ -386,7 +491,7 @@
            rg.planet === 'Earth' ? planR*1.2 : planR, PLAN_RAMP, 2.2);
     }
 
-    disc(cx, cy, sunR, SUN_RAMP, 2.9);
+    drawSun(cx, cy, sunR);
   }
 
   function placeNodes(){
@@ -395,7 +500,7 @@
       const rr = frac(RINGS[s.ring].a) * R;
       const th = s.phase + rate(RINGS[s.ring].a)*clock;
       nodes[i].style.transform =
-        `translate(${CX + Math.cos(th)*rr - 14}px, ${CY + Math.sin(th)*rr - 14}px)`;
+        `translate(${CX + Math.cos(th)*rr - NODE_HALF}px, ${CY + Math.sin(th)*rr - NODE_HALF}px)`;
     }
   }
 
