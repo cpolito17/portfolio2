@@ -4,7 +4,7 @@
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce) return;
-  const shell = document.querySelector('.shell, .prose-wrap');
+  const shell = document.querySelector('[data-page-root], .shell, .prose-wrap');
   if (!shell) return;
 
   document.addEventListener('click', e => {
