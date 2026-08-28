@@ -9,7 +9,6 @@
    210,000x, which is what makes the motion honest rather than decorative. */
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const flat   = () => matchMedia('(max-width:1080px)').matches;
 
   /* ═══ 1. Rings ════════════════════════════════════════════
      Radii are logarithmic in semi-major axis. A linear plot is technically
@@ -134,26 +133,39 @@
   const cv   = document.getElementById('plotbg');
   const ctx  = cv.getContext('2d');
   const starBtn = document.getElementById('star');
-  let CX = 0, CY = 0, R = 0, w = 0, h = 0;
+  let CX = 0, CY = 0, R = 0, w = 0, h = 0, KX = 1, KY = 1, BW = 0, BH = 0;
+
+  /* The canvas is a rounded-down fraction of the box it is stretched over, so
+     canvas pixels and CSS pixels are only the same size when the box divides
+     exactly by DIV. Dividing by DIV and hoping - which is what this did - put
+     the drawn sun and the DOM button that sits on it in two slightly different
+     places, and the gap grew with the rounding error. KX and KY are the real
+     conversion, so everything drawn lands where the DOM thinks it is. */
+  const cvX = x => x * KX, cvY = y => y * KY;
 
   function measure(){
     const b = plot.getBoundingClientRect();
-    R  = Math.min(b.width, b.height) * 0.42;
-    CX = b.width/2; CY = b.height/2;
-    w = Math.max(1, Math.round(b.width / DIV));
-    h = Math.max(1, Math.round(b.height / DIV));
+    BW = b.width; BH = b.height;
+    R  = Math.min(BW, BH) * 0.42;
+    CX = BW/2; CY = BH/2;
+    w = Math.max(1, Math.round(BW / DIV));
+    h = Math.max(1, Math.round(BH / DIV));
     cv.width = w; cv.height = h;
-    starBtn.style.transform = `translate(${CX - 32}px, ${CY - 32}px)`;
+    KX = w / BW; KY = h / BH;
+    const star = starBtn.getBoundingClientRect().width || 72;
+    starBtn.style.transform = `translate(${CX - star/2}px, ${CY - star/2}px)`;
   }
 
   /* ═══ 6. Plot primitives ══════════════════════════════════ */
+  /* Distances are measured from the pixel's centre, not its corner. Measuring
+     from the corner biases every circle half a pixel up and left. */
   function ring(cx, cy, rad, col, weight){
     const t = 1.15, r0 = rad - t, r1 = rad + t;      // thickness never changes
     const x0 = Math.max(0, (cx-r1)|0), x1 = Math.min(w-1, (cx+r1+1)|0);
     const y0 = Math.max(0, (cy-r1)|0), y1 = Math.min(h-1, (cy+r1+1)|0);
     for (let y=y0; y<=y1; y++){
       for (let x=x0; x<=x1; x++){
-        const d = Math.hypot(x-cx, y-cy);
+        const d = Math.hypot(x+0.5-cx, y+0.5-cy);
         if (d < r0 || d > r1) continue;
         if ((1 - Math.abs(d-rad)/t) * weight <= BAY[y & 7][x & 7]) continue;
         ctx.fillStyle = col;
@@ -168,7 +180,7 @@
     const y0 = Math.max(0, (cy-outer)|0), y1 = Math.min(h-1, (cy+outer+1)|0);
     for (let y=y0; y<=y1; y++){
       for (let x=x0; x<=x1; x++){
-        const d = Math.hypot(x-cx, y-cy);
+        const d = Math.hypot(x+0.5-cx, y+0.5-cy);
         if (d > outer) continue;
         const t = BAY[y & 7][x & 7];
         let c;
@@ -187,91 +199,140 @@
   const SUN_RAMP  = [[255,248,222],[255,232,168],[236,190,116],[178,136,78]];
   const PLAN_RAMP = [[214,228,255],[150,178,226],[96,124,176],[60,82,124]];
 
-  /* ═══ 7. Traffic ══════════════════════════════════════════
-     Rockets ride a transfer between two rings: interpolating radius and angle
-     separately, with the angle easing, traces the spiral a real transfer makes
-     rather than a straight line across the middle. Comets cross the periphery
-     on a straight chord and never enter the rings, so they read as passing
-     through rather than orbiting. */
-  const rockets = [], comets = [];
-  let nextRocket = 3, nextComet = 3;
+  /* ═══ 7. Traffic ═════════════════════════════════════════ */
+
+  /* ── Rockets ──────────────────────────────────────────────
+     A rocket flies between two BODIES, not between two rings. It launches from
+     where its origin actually is right now and arrives where its destination
+     will actually be when it gets there: the arrival angle is the target's
+     phase evaluated at clock + dur, so the burn ends on the body rather than at
+     an arbitrary point on the destination ring. Aiming at the ring instead is
+     why every landing looked like it stopped just short of a planet. */
+  const rockets = [], comets = [], sparks = [];
+  let nextRocket = 3, nextComet = 2.5;
 
   function spawnRocket(){
-    const a = (Math.random()*RINGS.length)|0;
-    let b = (Math.random()*RINGS.length)|0;
-    if (b === a) b = (a + 1) % RINGS.length;
-    rockets.push({ r0: frac(RINGS[a].a), r1: frac(RINGS[b].a),
-                   t0: Math.random()*Math.PI*2,
-                   sweep: (Math.PI*0.6 + Math.random()*Math.PI*0.7) * (Math.random()<.5?-1:1),
-                   t: 0, dur: 5 + Math.random()*3, trail: [] });
+    const from = seats[(Math.random()*seats.length)|0];
+    const pool = seats.filter(t => t.ring !== from.ring);
+    const to   = pool[(Math.random()*pool.length)|0];
+    const dur  = 5 + Math.random()*3;
+    const th0 = from.phase + rate(RINGS[from.ring].a) * clock;
+    const th1 = to.phase   + rate(RINGS[to.ring].a)   * (clock + dur);
+    let d = th1 - th0;
+    d = Math.atan2(Math.sin(d), Math.cos(d));         // take the short way round
+    rockets.push({ r0: frac(RINGS[from.ring].a), r1: frac(RINGS[to.ring].a),
+                   th0, dth: d, t: 0, dur, trail: [] });
   }
 
-  /* A comet runs a chord ACROSS the periphery, between two points on a ring
-     just outside the outermost orbit, entering from off-frame along that line.
-     An inbound path spends most of its life far out and crosses the visible
-     band in a couple of frames; a tangential one stays in the corners where it
-     can actually be seen, which is where the brief wants it. */
+  /* ── Comets ───────────────────────────────────────────────
+     These live on the viewport canvas, not the plot's: a shooting star crosses
+     the whole screen. One is seeded off one edge and aimed past the opposite
+     one, so it runs the full diagonal and leaves the far side rather than
+     expiring in the middle of the frame. */
+  const tcv = document.getElementById('trail');
+  const tctx = tcv.getContext('2d');
+  let TW = 0, TH = 0;
+
+  function sizeTrail(){
+    TW = Math.max(1, Math.round(innerWidth / DIV));
+    TH = Math.max(1, Math.round(innerHeight / DIV));
+    tcv.width = TW; tcv.height = TH;
+  }
+
   function spawnComet(){
-    const cx = w/2, cy = h/2;
-    const peri = R/DIV * 1.12;
-    const t1 = Math.random()*Math.PI*2;
-    const t2 = t1 + (0.9 + Math.random()*0.8) * (Math.random() < .5 ? -1 : 1);
-    const ax = cx + Math.cos(t1)*peri, ay = cy + Math.sin(t1)*peri;
-    const bx = cx + Math.cos(t2)*peri, by = cy + Math.sin(t2)*peri;
-    const d = Math.hypot(bx-ax, by-ay) || 1;
-    const ux = (bx-ax)/d, uy = (by-ay)/d, sp = 2.6 + Math.random()*1.1;
-    const lead = 40;                                  // start just off-frame
-    comets.push({ x: ax - ux*lead, y: ay - uy*lead,
-                  vx: ux*sp, vy: uy*sp, life: 0, max: 260, trail: [] });
+    const cx = TW/2, cy = TH/2, half = Math.hypot(TW, TH)/2;
+    const enter = Math.random()*Math.PI*2;
+    /* Aim past the far side rather than at the centre, so the path is a long
+       chord instead of a spoke through the middle. */
+    const exit = enter + Math.PI + (Math.random()-0.5)*0.9;
+    const sx = cx + Math.cos(enter)*half*1.12, sy = cy + Math.sin(enter)*half*1.12;
+    const ex = cx + Math.cos(exit)*half*1.12,  ey = cy + Math.sin(exit)*half*1.12;
+    const d = Math.hypot(ex-sx, ey-sy) || 1;
+    const sp = 3.4 + Math.random()*1.6;               // ~8s to cross at 12fps
+    comets.push({ x:sx, y:sy, vx:(ex-sx)/d*sp, vy:(ey-sy)/d*sp,
+                  hue: Math.random() < 0.25 ? 'warm' : 'cool',
+                  life: 0, trail: [] });
   }
 
-  /* The tail thins out by dither rather than by alpha, so it stays part of the
-     same pixel medium as everything else on the canvas. */
-  function drawTrail(trail, head, headCol, tailCol, density, thick){
-    for (let i=0; i<trail.length; i++){
-      const f = (i+1)/trail.length;
-      if (f*f*density <= BAY[trail[i][1] & 7][trail[i][0] & 7]) continue;
-      /* The streak tapers by width as well as by dither: a one-pixel tail is
-         legible on a still frame and invisible in motion. */
-      const wpx = (thick && f > 0.62) ? 2 : 1;
-      ctx.fillStyle = tailCol;
-      ctx.fillRect(trail[i][0]|0, trail[i][1]|0, wpx, wpx);
+  const COOL = [[255,255,255],[214,232,255],[150,186,246],[86,126,196]];
+  const WARM = [[255,255,255],[255,232,190],[240,186,120],[190,126,70]];
+
+  /* The streak is drawn as a ramp along its own length rather than one flat
+     colour: white at the head, cooling and thinning down the tail, with the
+     dither doing the fade. Sparks shed off the head and drift, which is what
+     keeps it from reading as a straight line with a dot on the end. */
+  function drawComet(c){
+    const ramp = c.hue === 'warm' ? WARM : COOL;
+    for (let i=0; i<c.trail.length; i++){
+      const f = (i+1)/c.trail.length;                 // 1 at the head
+      const px = c.trail[i][0]|0, py = c.trail[i][1]|0;
+      if (px < -4 || py < -4 || px > TW+4 || py > TH+4) continue;
+      if (f*f*2.6 <= BAY[py & 7][px & 7]) continue;
+      /* Cool quickly off the head so only the tip is white: holding white for
+         the first third of the streak reads as a solid bar rather than a
+         shooting star. */
+      const col = ramp[Math.min(ramp.length-1, ((1-f)*1.7*ramp.length)|0)];
+      const wpx = f > 0.93 ? 2 : 1;
+      tctx.fillStyle = `rgb(${col[0]},${col[1]},${col[2]})`;
+      tctx.fillRect(px, py, wpx, wpx);
     }
-    ctx.fillStyle = headCol;
-    ctx.fillRect(head[0]|0, head[1]|0, head[2], head[2]);
+    tctx.fillStyle = '#ffffff';
+    tctx.fillRect((c.x-1)|0, (c.y-1)|0, 3, 3);
   }
 
   function stepTraffic(dt){
     nextRocket -= dt;
-    if (nextRocket <= 0){ spawnRocket(); nextRocket = 7 + Math.random()*9; }
+    if (nextRocket <= 0){ spawnRocket(); nextRocket = 6 + Math.random()*8; }
     nextComet -= dt;
-    if (nextComet <= 0){ spawnComet(); nextComet = 6 + Math.random()*7; }
+    if (nextComet <= 0){ spawnComet(); nextComet = 9 + Math.random()*11; }
 
-    const cx = CX/DIV, cy = CY/DIV;
+    /* Rockets, on the plot canvas. */
+    const cx = cvX(CX), cy = cvY(CY);
     for (let i=rockets.length-1; i>=0; i--){
       const k = rockets[i];
       k.t += dt / k.dur;
       if (k.t >= 1){ rockets.splice(i, 1); continue; }
-      const e = k.t*k.t*(3 - 2*k.t);                 // ease both ends of the burn
-      const rr = (k.r0 + (k.r1 - k.r0)*e) * R/DIV;
-      const th = k.t0 + k.sweep*e;
+      const e = k.t*k.t*(3 - 2*k.t);                  // ease both ends of the burn
+      const rr = cvX((k.r0 + (k.r1 - k.r0)*e) * R);
+      const th = k.th0 + k.dth*e;
       const x = cx + Math.cos(th)*rr, y = cy + Math.sin(th)*rr;
-      k.trail.push([x, y]); if (k.trail.length > 14) k.trail.shift();
-      drawTrail(k.trail, [x-1, y-1, 2], '#fff3d2', 'rgba(232,193,112,.8)', 1.3, false);
+      k.trail.push([x, y]); if (k.trail.length > 16) k.trail.shift();
+      for (let j=0; j<k.trail.length; j++){
+        const f = (j+1)/k.trail.length;
+        const tx = k.trail[j][0]|0, ty = k.trail[j][1]|0;
+        if (tx < 0 || ty < 0 || tx >= w || ty >= h) continue;
+        if (f*f*1.35 <= BAY[ty & 7][tx & 7]) continue;
+        ctx.fillStyle = 'rgba(232,193,112,.8)';
+        ctx.fillRect(tx, ty, 1, 1);
+      }
+      ctx.fillStyle = '#fff3d2';
+      ctx.fillRect((x-1)|0, (y-1)|0, 2, 2);
     }
-    /* Culled on distance from centre, not on a per-axis margin: a comet enters
-       from further out than any fixed margin allows, so a bounds test retires
-       it on its first frame, before it is ever on screen. */
-    const half = Math.hypot(w, h)/2;
+
+    /* Comets and their sparks, on the viewport canvas. */
+    tctx.clearRect(0, 0, TW, TH);
+    const margin = Math.hypot(TW, TH)*0.62;
     for (let i=comets.length-1; i>=0; i--){
       const c = comets[i];
       c.x += c.vx; c.y += c.vy; c.life++;
-      const d = Math.hypot(c.x-cx, c.y-cy);
-      if (c.life > c.max || d < R/DIV*1.02 || (c.life > 4 && d > half*1.3)){
-        comets.splice(i, 1); continue;
-      }
-      c.trail.push([c.x, c.y]); if (c.trail.length > 46) c.trail.shift();
-      drawTrail(c.trail, [c.x-2, c.y-2, 4], '#ffffff', 'rgba(214,232,255,.9)', 2.8, true);
+      if (Math.hypot(c.x - TW/2, c.y - TH/2) > margin){ comets.splice(i, 1); continue; }
+      c.trail.push([c.x, c.y]); if (c.trail.length > 52) c.trail.shift();
+      if (c.life % 3 === 0 && sparks.length < 90)
+        sparks.push({ x:c.x, y:c.y, vx:-c.vx*0.18 + (Math.random()-.5)*0.9,
+                      vy:-c.vy*0.18 + (Math.random()-.5)*0.9, age:0,
+                      max: 12 + (Math.random()*14)|0, hue: c.hue });
+      drawComet(c);
+    }
+    for (let i=sparks.length-1; i>=0; i--){
+      const s = sparks[i];
+      s.x += s.vx; s.y += s.vy; s.age++;
+      if (s.age > s.max){ sparks.splice(i, 1); continue; }
+      const f = 1 - s.age/s.max;
+      const px = s.x|0, py = s.y|0;
+      if (px < 0 || py < 0 || px >= TW || py >= TH) continue;
+      if (f*f*1.5 <= BAY[py & 7][px & 7]) continue;
+      tctx.fillStyle = s.hue === 'warm' ? 'rgba(255,214,150,.9)' : 'rgba(198,220,255,.9)';
+      tctx.fillRect(px, py, 1, 1);
     }
   }
 
@@ -289,22 +350,29 @@
     ctx.clearRect(0, 0, w, h);
     const cx = CX/DIV, cy = CY/DIV;
 
-    ring(cx, cy, MERCURY.f*R/DIV, 'rgba(150,170,210,.26)', 0.5);
+    /* Bodies are sized against the plot, not in fixed pixels: a sun that reads
+       right against a 360px orbit is a third of the way to the rings on a
+       phone. Mercury's track is dropped once it would sit inside the sun's
+       own bloom. */
+    const RC = cvX(R);
+    const sunR   = Math.max(3.2, Math.min(6.2, RC*0.05));
+    const planR  = Math.max(1.4, Math.min(2.4, RC*0.018));
+    if (RC > 60) ring(cx, cy, cvX(MERCURY.f*R), 'rgba(150,170,210,.26)', 0.5);
     RINGS.forEach((rg, i) => {
       const on = active >= 0 && seats[active].ring === i;
-      ring(cx, cy, frac(rg.a)*R/DIV,
+      ring(cx, cy, cvX(frac(rg.a)*R),
            on ? 'rgba(232,193,112,.9)' : 'rgba(150,170,210,.4)',
            on ? 1 : 0.55);
     });
 
     for (const rg of RINGS.concat([MERCURY])){
       const th = BASE[rg.planet] + rate(rg.a)*clock;
-      const rr = fracOf(rg)*R/DIV;
+      const rr = cvX(fracOf(rg)*R);
       disc(cx + Math.cos(th)*rr, cy + Math.sin(th)*rr,
-           rg.planet === 'Earth' ? 2.2 : 1.8, PLAN_RAMP, 2.2);
+           rg.planet === 'Earth' ? planR*1.2 : planR, PLAN_RAMP, 2.2);
     }
 
-    disc(cx, cy, 5.4, SUN_RAMP, 2.9);
+    disc(cx, cy, sunR, SUN_RAMP, 2.9);
   }
 
   function placeNodes(){
@@ -350,17 +418,35 @@
   }
   detail.innerHTML = IDLE;
 
-  /* Both halves drive the same selection, so a row and its body highlight
-     together whichever one the pointer is actually over. */
+  /* ── Attention ────────────────────────────────────────────
+     Left alone the page walks itself through the apps, holding each one long
+     enough to read, so an idle screen is showing work rather than an empty
+     readout. A pointer or the caret takes it straight over; the walk resumes a
+     beat after they leave, carrying on from wherever it was rather than
+     restarting at the top. */
+  const DWELL = 3.4, RESUME_AFTER = 1.8;
+  let held = false, dwell = 1.2;
+
+  function hold(i){ held = true; select(i); }
+  function release(){ held = false; dwell = RESUME_AFTER; }
+
   const bind = (els) => els.forEach((el, i) => {
-    el.addEventListener('mouseenter', () => select(i));
-    el.addEventListener('focus',      () => select(i));
+    el.addEventListener('mouseenter', () => hold(i));
+    el.addEventListener('focus',      () => hold(i));
   });
   bind(rows); bind(nodes);
   const leave = host => host.addEventListener('mouseleave', () => {
-    if (!host.contains(document.activeElement)) select(-1);
+    if (!host.contains(document.activeElement)) release();
   });
   leave(index); leave(nodesEl);
+
+  function walk(dt){
+    if (held) return;
+    dwell -= dt;
+    if (dwell > 0) return;
+    dwell = DWELL;
+    select(active < 0 ? 0 : (active + 1) % seats.length);
+  }
 
   index.addEventListener('keydown', e => {
     const at = rows.indexOf(document.activeElement);
@@ -434,7 +520,7 @@
 
   function layout(){
     for (const p of plates) if (measurePlate(p)) paintPlate(p);
-    if (flat()){ nodes.forEach(el => el.style.transform = ''); return; }
+    sizeTrail();
     measure();
     draw(); placeNodes();
   }
@@ -450,8 +536,7 @@
       p.lit += (p.target - p.lit) * 0.3;
       paintPlate(p);
     }
-    if (flat()) return;
-    if (!reduce) clock += dt;
+    if (!reduce){ clock += dt; walk(dt); }
     draw();
     stepTraffic(reduce ? 0 : dt);
     placeNodes();

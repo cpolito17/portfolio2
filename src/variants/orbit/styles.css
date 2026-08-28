@@ -12,7 +12,18 @@
    not thicken and nodes do not scale - because the bodies are in motion and a
    target that grows under the cursor is a target that runs away from it. ── */
 
-.orbit{ --idx:19rem; --det:17rem; }
+/* One face for everything. JetBrains Mono is wider than Poppins at the same
+   size, so the scale below is set a notch tighter to keep the same line counts. */
+.orbit{
+  --idx:19rem; --det:17rem;
+  --font:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+body.orbit{font-family:var(--font)}
+
+/* Comets cross the whole viewport, so their canvas is the viewport - above the
+   star field and the plot, under nothing. */
+#trail{position:fixed;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;
+  image-rendering:pixelated;image-rendering:crisp-edges}
 
 .stage{position:relative;z-index:2;min-height:100vh;height:100vh;
   display:grid;grid-template-columns:calc(var(--idx) + var(--det)) 1fr}
@@ -34,8 +45,8 @@
 .side-main{display:flex;flex-direction:column;gap:1.15rem;min-height:0;
   padding:clamp(1.5rem,3.5vh,2.25rem) 1rem clamp(1.25rem,3vh,1.75rem) clamp(1.25rem,2vw,1.9rem)}
 .brand{flex-shrink:0}
-.wordmark{font-size:1.3rem;font-weight:600;letter-spacing:-.045em;margin:0}
-.brand-sub{margin:.25rem 0 0;font-size:.72rem;line-height:1.5;color:var(--ink-3)}
+.wordmark{font-size:1.15rem;font-weight:700;letter-spacing:-.03em;margin:0}
+.brand-sub{margin:.3rem 0 0;font-size:.66rem;line-height:1.55;color:var(--ink-3)}
 
 /* ── The index ───────────────────────────────────────────── */
 .index{list-style:none;margin:0;padding:0;flex:1;min-height:0;overflow-y:auto;
@@ -51,7 +62,7 @@
   image-rendering:pixelated;image-rendering:crisp-edges}
 .row-num{font-size:.6rem;letter-spacing:.12em;color:var(--ink-3);
   font-variant-numeric:tabular-nums;transition:color .2s ease-out}
-.row-name{font-size:.88rem;line-height:1.25;letter-spacing:-.01em}
+.row-name{font-size:.8rem;line-height:1.3;letter-spacing:-.01em}
 /* Declared before the breakpoint that turns it on: same specificity, so a
    default placed after the media query would win and blank the list. */
 .row-desc{display:none;font-size:.73rem;line-height:1.5;color:var(--ink-3);margin-top:.2rem}
@@ -77,8 +88,8 @@
   border-left:1px solid rgba(255,255,255,.07)}
 .det-in{animation:det-in .26s cubic-bezier(.22,1,.36,1) both}
 @keyframes det-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.det-name{margin:0 0 .45rem;font-size:1.05rem;font-weight:600;letter-spacing:-.03em}
-.det-desc{margin:0;font-size:.79rem;line-height:1.6;color:var(--ink-2)}
+.det-name{margin:0 0 .45rem;font-size:.95rem;font-weight:700;letter-spacing:-.02em}
+.det-desc{margin:0;font-size:.73rem;line-height:1.7;color:var(--ink-2)}
 .det-note{margin:.5rem 0 0;font-size:.66rem;letter-spacing:.06em;color:var(--accent)}
 .det-meta{display:block;margin-top:.8rem;padding-top:.7rem;font-size:.6rem;letter-spacing:.12em;
   text-transform:uppercase;color:var(--ink-3);border-top:1px solid rgba(255,255,255,.09)}
@@ -151,7 +162,7 @@
 .node-dot svg{width:19px;height:19px;display:block;image-rendering:pixelated}
 .node-name{
   position:absolute;top:calc(100% + .28rem);left:50%;transform:translateX(-50%);
-  width:7.5rem;text-align:center;font-size:.62rem;line-height:1.2;
+  width:8.5rem;text-align:center;font-size:.58rem;line-height:1.25;
   text-shadow:0 1px 4px rgba(5,6,13,.95),0 0 8px rgba(5,6,13,.85);
   transition:color .2s ease-out}
 .node[data-on="true"]{color:var(--accent)}
@@ -161,29 +172,69 @@
 .node-desc{display:none}
 
 .star{
-  position:absolute;left:0;top:0;width:64px;height:64px;padding:0;
-  background:none;border:0;border-radius:999px;cursor:pointer;
+  position:absolute;left:0;top:0;width:var(--star,72px);padding:0;
+  background:none;border:0;cursor:pointer;color:var(--accent);
+  display:flex;flex-direction:column;align-items:center;gap:.35rem}
+/* The hit area and the ring are the square at the top of the button; the label
+   hangs below it. Putting the ring on the button itself would centre it on the
+   button box, which the label makes taller than the sun - which is exactly how
+   it ended up sitting high and left of the star. */
+.star-ring{
+  display:block;width:var(--star,72px);height:var(--star,72px);border-radius:999px;
   transition:box-shadow .22s ease-out}
-.star:hover{box-shadow:0 0 0 2px rgba(232,193,112,.5),0 0 26px rgba(232,193,112,.35)}
-.star:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.star:hover .star-ring,.star:focus-visible .star-ring{
+  box-shadow:0 0 0 2px rgba(232,193,112,.55),0 0 28px rgba(232,193,112,.35)}
+.star-label{
+  font:500 .62rem/1 var(--font);letter-spacing:.16em;text-transform:uppercase;
+  text-shadow:0 1px 5px rgba(5,6,13,.95),0 0 10px rgba(5,6,13,.9);
+  border-bottom:1px dashed rgba(232,193,112,.5);padding-bottom:.15rem;white-space:nowrap}
+.star:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:.4rem}
 
-/* ── Narrow: the plot cannot be read, so it becomes a list ── */
+/* ── Narrow ───────────────────────────────────────────────
+   The plot stays - shrunk to a band under the header, running the same
+   animation it runs on desktop - and the index becomes a scrolling list beneath
+   it. Getting that order out of a DOM built for two columns is what
+   display:contents is for: .side and .side-main stop generating boxes, their
+   children become grid items of .stage directly, and `order` interleaves the
+   plot between the header and the list without moving a single element. ── */
 @media (max-width:1080px){
-  .stage{grid-template-columns:1fr;height:auto;
+  .stage{
+    display:grid;grid-template-columns:1fr;height:auto;min-height:100vh;
     background:linear-gradient(180deg,rgba(5,6,13,.82),rgba(5,6,13,.92))}
-  .side{grid-template-columns:1fr;background:none;overflow:visible}
-  .side-main{padding:clamp(1.5rem,4vw,2rem) clamp(1.1rem,4vw,1.6rem) 1rem}
-  .index{overflow:visible;justify-content:flex-start;gap:0}
+  .side,.side-main{display:contents}
+
+  .brand{order:1;padding:clamp(1.4rem,4vw,2rem) clamp(1.1rem,4vw,1.6rem) .5rem}
+  .plot{order:2;display:block;height:40vh;min-height:16rem;position:relative}
+  nav{order:3}
+  .side-foot{order:4;padding:1rem clamp(1.1rem,4vw,1.6rem) 2.5rem}
+
+  .index{overflow:visible;justify-content:flex-start;gap:0;
+    padding:0 clamp(1.1rem,4vw,1.6rem)}
   .row{grid-template-columns:1.7rem 1fr;align-items:start;padding:.8rem .6rem;
     border-top:1px solid rgba(255,255,255,.08);border-left:2px solid transparent}
   .row-num{padding-top:.15rem}
   .row-desc{display:block}
   .row-bg{display:none}
+
+  /* The readout has nowhere to sit beside a full-width list, so each row
+     carries its own copy and the detail column goes away. */
   .detail{display:none}
-  /* The orbit is what runs at that rate, and it is not on screen here. */
-  .rate{display:none}
   .about{position:fixed;inset:0;z-index:20;padding:1.5rem 1.25rem 1rem}
-  .plot{display:none}
+
+  /* Smaller stage, smaller furniture. The node labels come off entirely:
+     eleven of them orbiting inside a band this size collide with each other and
+     with the sun on every frame, and the list directly below already names
+     every app. The icons stay as bodies; selecting one lights its row. */
+  .node{width:26px;height:26px}
+  .node-dot svg{width:17px;height:17px}
+  .node-name{display:none}
+  .star{--star:44px;z-index:2}
+  .star-label{font-size:.55rem;letter-spacing:.12em}
+}
+@media (max-width:520px){
+  .plot{height:38vh}
+  .node{width:24px;height:24px}
+  .node-dot svg{width:15px;height:15px}
 }
 
 @media (prefers-reduced-motion:reduce){
