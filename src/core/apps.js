@@ -51,8 +51,13 @@ const APPS = {
 };
 
 /* Canonical reading order. This is also the mobile order everywhere, since a
-   single column follows the DOM. Cairn leads; the games and Tax Haven trail. */
-const ORDER = ['compass','cairn','aoex','localize','ttlw','keeran','liteedit','ghost','homegame','taxhaven','payload']
-  .map(k => APPS[k]);
+   single column follows the DOM. Compass leads; the games and Tax Haven trail.
+
+   Every key must name an entry in APPS. A typo used to yield an `undefined`
+   slot that only surfaced as a TypeError once a variant read `.url` off it,
+   taking the whole hub down with a blank page, so the miss is thrown here
+   instead, naming the bad key. */
+const ORDER = ['compass','cairn','apex','localize','ttlw','keeran','liteedit','ghost','homegame','taxhaven','payload']
+  .map(k => { const app = APPS[k]; if (!app) throw new Error(`apps.js: ORDER names "${k}", which is not in APPS`); return app; });
 
 const ABOUT_LINK = { id:'about', name:'About me', url:'/about' };
