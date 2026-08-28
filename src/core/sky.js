@@ -363,7 +363,7 @@ function drawDot(b, sx, sy){
 const DISC_RAMP = [[255,244,214],[255,226,168],[228,186,126],[176,140,96],[118,92,64]];
 function drawDisc(b, sx, sy){
   const r = bodySize(b.name) * 1.9 * OPT.planetScale;
-  const bloom = r * 2.9;
+  const bloom = r * 2.4;
   const x0 = Math.max(0, (sx-bloom)|0), x1 = Math.min(W-1, (sx+bloom)|0);
   const y0 = Math.max(0, (sy-bloom)|0), y1 = Math.min(H-1, (sy+bloom)|0);
   for (let py=y0; py<=y1; py++){

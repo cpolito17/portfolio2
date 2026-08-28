@@ -1,0 +1,70 @@
+/* ── C · Dissolve ──────────────────────────────────────────
+   Same night sky, opposite material. The glass tiles solve the "how does a
+   surface sit on a photograph" problem by blurring what is behind them; these
+   panels solve it by being made of the same substance as the sky. Each one is
+   an ordered-dithered fill drawn per pixel into its own canvas, so its edge
+   breaks up into the star field instead of ending at a border.
+
+   Nothing here scales on hover. A panel ignites: the dither threshold shifts,
+   more pixels survive, and the fill brightens the way a star does. Type and
+   layout stay still, which is the point - the surface reacts, not the page. ── */
+
+.stack{position:relative;z-index:2;max-width:70rem;margin:0 auto;
+  padding:clamp(2rem,6vh,4rem) clamp(1rem,3vw,2rem) clamp(2.5rem,7vh,4rem);
+  min-height:100vh;display:flex;flex-direction:column;gap:clamp(1.75rem,5vh,3rem)}
+
+/* ── Lede ─────────────────────────────────────────────────── */
+.lede{max-width:44rem}
+.wordmark{font-size:clamp(1.5rem,3.4vw,2.1rem);font-weight:600;letter-spacing:-.045em;
+  margin:0 0 .6rem}
+.blurb{margin:0;font-size:clamp(.86rem,1.3vw,.95rem);line-height:1.65;color:var(--ink-3)}
+
+/* ── Panels ───────────────────────────────────────────────
+   A loose two-column stack rather than a spanning grid: every panel is the same
+   width, and prominence is carried by order and by how much copy each one
+   holds, not by cell size. ── */
+.panels{display:grid;grid-template-columns:repeat(2,1fr);
+  gap:clamp(.6rem,1.4vw,1rem);align-content:start}
+.panel{
+  position:relative;display:block;text-decoration:none;color:inherit;
+  padding:clamp(.95rem,1.9vw,1.35rem);min-height:6.5rem;
+  isolation:isolate;
+}
+/* The fill is a canvas, not a background: the dither has to be computed, and a
+   CSS gradient cannot be thresholded. */
+.panel-bg{position:absolute;inset:0;width:100%;height:100%;z-index:-1;
+  image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+.panel:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.panel-inner{display:flex;gap:.85rem;align-items:flex-start}
+.panel-icon{flex-shrink:0;width:34px;height:34px;display:block;image-rendering:pixelated;
+  transition:filter .22s ease-out}
+.panel[data-lit="true"] .panel-icon{filter:brightness(1.35) saturate(1.1)}
+.panel-copy{min-width:0;display:flex;flex-direction:column;gap:.3rem}
+.panel-name{font-size:.98rem;font-weight:500;letter-spacing:-.015em;line-height:1.2;
+  overflow-wrap:break-word;transition:color .22s ease-out}
+.panel[data-lit="true"] .panel-name{color:#fff}
+.panel-desc{font-size:.76rem;line-height:1.5;color:var(--ink-3);
+  transition:color .22s ease-out}
+.panel[data-lit="true"] .panel-desc{color:var(--ink-2)}
+.panel-note{font-size:.66rem;letter-spacing:.06em;color:var(--accent);opacity:.85}
+
+/* ── Foot ─────────────────────────────────────────────────── */
+.foot{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem 1.1rem;
+  font-size:.78rem;margin-top:auto;padding-top:.5rem}
+.link-about{color:var(--accent);text-decoration:none;font-size:.92rem;
+  border-bottom:1px dashed rgba(232,193,112,.5);padding-bottom:.12rem}
+.foot-rule{flex:1;height:1px;background:rgba(255,255,255,.1);min-width:1.5rem}
+.foot-link{color:var(--ink-3);text-decoration:none;
+  border-bottom:1px solid transparent;padding-bottom:.12rem;transition:color .18s ease}
+.foot-link:hover{color:var(--ink)}
+.link-about:focus-visible,.foot-link:focus-visible{outline:2px solid var(--accent);
+  outline-offset:3px}
+
+@media (max-width:760px){
+  .panels{grid-template-columns:1fr}
+  .panel{min-height:0}
+}
+@media (prefers-reduced-motion:reduce){
+  .panel-icon,.panel-name,.panel-desc{transition:none}
+}
