@@ -50,8 +50,6 @@ body.orbit{
   animation:holo-orbit 12s linear infinite reverse}
 .orbit .holo-axis{position:absolute;width:86%;height:1px;
   background:linear-gradient(90deg,transparent,rgba(105,240,210,.28),transparent)}
-.orbit .holo-code{position:absolute;right:.45rem;bottom:.32rem;font-size:.48rem;
-  letter-spacing:.12em;color:rgba(105,240,210,.45)}
 .orbit .about{background:linear-gradient(100deg,rgba(3,10,24,.985),rgba(14,35,50,.96));
   backdrop-filter:blur(20px)}
 .orbit .node-dot{border-color:rgba(190,224,255,.2);background:rgba(8,22,41,.72);

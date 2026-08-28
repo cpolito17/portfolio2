@@ -14,8 +14,8 @@
      byte at runtime. */
   const THEME = Object.assign({
     plate:[30,42,72], grain:16, motion:1, sunSize:1, sunActivity:1,
-    effects:{ energyPulse:false, parallax:false, launch:false, hologram:false },
-    parallaxRange:9, energyRgb:[105,240,210], energyAltRgb:[169,139,255], launchMs:560,
+    effects:{ parallax:false, launch:false, hologram:false },
+    parallaxRange:9, launchMs:560,
     sunRamp:[[255,248,222],[255,232,168],[236,190,116],[178,136,78]],
     planetRamp:[[214,228,255],[150,178,226],[96,124,176],[60,82,124]],
     cometCool:[[255,255,255],[214,232,255],[150,186,246],[86,126,196]],
@@ -91,6 +91,9 @@
 
   const rows  = [...index.querySelectorAll('.row')];
   const nodes = [...nodesEl.querySelectorAll('.node')];
+  document.getElementById('sideContact').innerHTML = RESUME.links.map(link =>
+    `<a href="${link.url}"${link.external ? ' target="_blank" rel="noopener noreferrer"' : ''}>${link.label}</a>`
+  ).join('');
 
   /* ═══ 3. Dither ═══════════════════════════════════════════ */
   const BAY = (() => {
@@ -463,7 +466,7 @@
   }
 
   /* ═══ 8. Draw ═════════════════════════════════════════════ */
-  let active = -1, clock = 0, energyPulse = null;
+  let active = -1, clock = 0;
   const parallax = { x:0, y:0, tx:0, ty:0 };
 
   if (FX.parallax && !reduce){
@@ -530,38 +533,6 @@
     }
   }
 
-  /* A short packet travels from the index to the selected orbital body. It is
-     drawn on the existing viewport trail canvas, after comets, so no new
-     compositing layer or pointer target is introduced. */
-  function drawEnergyPulse(dt){
-    if (!energyPulse || reduce || innerWidth <= 1080){ energyPulse = null; return; }
-    energyPulse.age += dt;
-    const i=energyPulse.i, row=rows[i], node=nodes[i];
-    if(!row || !node){ energyPulse=null; return; }
-    const a=row.getBoundingClientRect(), b=node.getBoundingClientRect();
-    const sx=a.right, sy=a.top+a.height/2, ex=b.left+b.width/2, ey=b.top+b.height/2;
-    const cx=sx+(ex-sx)*.52, cy=sy-(Math.min(150,Math.abs(ex-sx)*.14));
-    const p=Math.min(1,energyPulse.age/energyPulse.dur);
-    const head=1-Math.pow(1-p,3), tail=Math.max(0,head-.24);
-    const kx=TW/Math.max(1,innerWidth), ky=TH/Math.max(1,innerHeight);
-    const rgb=THEME.energyRgb, alt=THEME.energyAltRgb;
-    for(let t=tail;t<=head;t+=.012){
-      const u=1-t;
-      const x=(u*u*sx+2*u*t*cx+t*t*ex)*kx;
-      const y=(u*u*sy+2*u*t*cy+t*t*ey)*ky;
-      const fade=(t-tail)/Math.max(.001,head-tail);
-      const col=fade>.68?rgb:alt, ix=Math.round(x), iy=Math.round(y);
-      if(ix<0||iy<0||ix>=TW||iy>=TH||BAY[iy&7][ix&7]>.28+fade*.7)continue;
-      tctx.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},${(.18+fade*.72).toFixed(3)})`;
-      tctx.fillRect(ix,iy,fade>.82?2:1,fade>.82?2:1);
-    }
-    const u=1-head,hx=Math.round((u*u*sx+2*u*head*cx+head*head*ex)*kx);
-    const hy=Math.round((u*u*sy+2*u*head*cy+head*head*ey)*ky);
-    tctx.fillStyle=`rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
-    tctx.fillRect(hx-1,hy,3,1);tctx.fillRect(hx,hy-1,1,3);
-    if(p>=1)energyPulse=null;
-  }
-
   /* ═══ 9. Selection ════════════════════════════════════════ */
   const IDLE = `<div class="det-in"><p class="det-idle"><b>Eleven apps.</b>
     Each one started as a problem I wanted solved for myself. Pick one from the
@@ -569,8 +540,6 @@
 
   function select(i){
     if (i === active) return;
-    if(FX.energyPulse && !reduce && i>=0 && innerWidth>1080)
-      energyPulse={i,age:0,dur:.88};
     active = i;
     rows.forEach((el, k) => el.dataset.on = String(k === i));
     nodes.forEach((el, k) => el.dataset.on = String(k === i));
@@ -587,7 +556,6 @@
           <span class="holo-orbit holo-orbit-b"></span>
           <span class="holo-icon">${iconSVG(a.id)}</span>
           <span class="holo-axis"></span>
-          <span class="holo-code">${a.id.toUpperCase()}</span>
         </div>` : ''}
         <h2 class="det-name">${a.name}</h2>
         <p class="det-desc">${a.desc}</p>
@@ -653,7 +621,7 @@
 
   function launchTo(i,href){
     if(launching)return;
-    launching=true;held=true;select(i);energyPulse=null;
+    launching=true;held=true;select(i);
     const r=nodes[i]?.getBoundingClientRect();
     const x=r?r.left+r.width/2:innerWidth/2,y=r?r.top+r.height/2:innerHeight/2;
     document.body.style.setProperty('--launch-x',`${x}px`);
@@ -771,7 +739,6 @@
     draw();
     stepTraffic(reduce ? 0 : dt * THEME.motion);
     placeNodes();
-    drawEnergyPulse(dt);
     stepParallax();
   }
 

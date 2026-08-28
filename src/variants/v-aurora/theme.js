@@ -6,8 +6,8 @@ window.SKY_OPTS = {
 };
 window.ORBIT_THEME = {
   plate:[15,63,74], grain:20, motion:.72, sunSize:1.16, sunActivity:1.25,
-  effects:{energyPulse:true,parallax:true,launch:true,hologram:true},
-  parallaxRange:10, energyRgb:[105,240,210], energyAltRgb:[169,139,255], launchMs:560,
+  effects:{parallax:true,launch:true,hologram:true},
+  parallaxRange:10, launchMs:560,
   sunRamp:[[255,255,237],[255,232,139],[255,178,72],[237,102,58],[154,50,74],[67,30,71]],
   planetRamp:[[239,230,255],[184,151,245],[115,104,209],[60,61,143]],
   cometCool:[[255,255,255],[165,255,235],[91,206,224],[80,100,198]],
