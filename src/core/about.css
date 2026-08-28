@@ -1,0 +1,64 @@
+/* ── About ────────────────────────────────────────────────── */
+.back{
+  position:fixed;top:clamp(1rem,3vw,1.75rem);left:clamp(1rem,3vw,1.75rem);z-index:3;
+  display:inline-flex;align-items:center;gap:.45rem;border-radius:999px;
+  padding:.5rem .95rem .5rem .8rem;font-size:.8rem;color:var(--ink);text-decoration:none;
+  transition:transform .18s cubic-bezier(.22,1,.36,1);
+}
+.back:hover{transform:scale(1.05)}
+.back:active{transform:scale(.95)}
+.back:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+.prose-wrap{position:relative;z-index:2;max-width:68ch;
+  margin:0 auto;padding:clamp(4.5rem,11vh,7rem) clamp(1rem,4vw,1.5rem) 5rem}
+/* The resume is long-form reading and the sky behind it is bright at the limb,
+   so the text gets its own glass surface instead of sitting on the raw canvas. */
+.prose{
+  border-radius:var(--radius);
+  padding:clamp(1.75rem,4vw,3rem) clamp(1.5rem,4vw,3rem);
+  background:
+    linear-gradient(rgba(8,10,20,.62),rgba(8,10,20,.62)) padding-box,
+    linear-gradient(180deg,
+      rgba(255,255,255,.45) 0%, rgba(255,255,255,.15) 20%,
+      transparent 40%, transparent 60%,
+      rgba(255,255,255,.15) 80%, rgba(255,255,255,.45) 100%) border-box;
+  border:1.4px solid transparent;
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+  backdrop-filter:blur(18px) saturate(150%);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.1);
+}
+.prose h1{font-size:clamp(2rem,5vw,2.9rem);font-weight:600;letter-spacing:-.04em;
+  margin:0 0 1.1rem;text-wrap:balance}
+.prose h2{font-size:1.15rem;font-weight:500;letter-spacing:-.02em;
+  margin:3.25rem 0 1.25rem;color:var(--ink)}
+.prose p{color:var(--ink-2);line-height:1.65;margin:0 0 1.1rem;font-size:.94rem}
+.lede{font-size:1.05rem!important;color:var(--ink)!important}
+
+.role{margin:0 0 2rem}
+.role-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:.25rem .85rem;margin-bottom:.6rem}
+.role-head h3{font-size:1rem;font-weight:500;margin:0;letter-spacing:-.015em}
+.role-meta{font-size:.8rem;color:var(--ink-3)}
+.role ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:.55rem}
+.role li{position:relative;padding-left:1.05rem;color:var(--ink-2);line-height:1.6;font-size:.9rem}
+.role li::before{content:'';position:absolute;left:0;top:.66em;width:5px;height:1px;
+  background:var(--ink-3)}
+
+.skills{display:flex;flex-direction:column;gap:1.4rem}
+.skill-group h4{font-size:.82rem;font-weight:500;margin:0 0 .35rem;color:var(--ink)}
+.skill-group p{margin:0;font-size:.86rem;color:var(--ink-3);line-height:1.6}
+
+.links{display:flex;flex-wrap:wrap;gap:.6rem}
+.pill{border-radius:999px;padding:.55rem 1.15rem;font-size:.85rem;color:var(--ink);
+  text-decoration:none;transition:transform .18s cubic-bezier(.22,1,.36,1)}
+.pill:hover{transform:scale(1.05)}
+.pill:active{transform:scale(.95)}
+.pill:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+.rise{opacity:0;transform:translateY(18px);
+  transition:opacity .55s cubic-bezier(.22,1,.36,1),transform .55s cubic-bezier(.22,1,.36,1)}
+.rise.shown{opacity:1;transform:none}
+
+@media (prefers-reduced-motion:reduce){
+  .rise{opacity:1;transform:none;transition:none}
+  .page-enter,.page-exit,.page-exit-back{animation:none}
+}

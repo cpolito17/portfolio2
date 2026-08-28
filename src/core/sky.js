@@ -1,4 +1,3 @@
-const ICONS = __ICONS__;
 const STARS_RAW = "__STARS__";
 
 /* ═══ 1. Astronomy ══════════════════════════════════════════
@@ -409,3 +408,10 @@ function loop(now){
   ctx.putImageData(backdrop, 0, 0);
   drawCity(now); drawStars(now); drawSats(); drawBodies();
 }
+/* ═══ Boot ══════════════════════════════════════════════════
+   Every page that includes the sky starts it the same way, so the boot lives
+   with the engine rather than being repeated in each page's script. */
+resize(); recomputeSky();
+for (let i=0;i<2;i++) spawnSat();
+requestAnimationFrame(loop);
+window.addEventListener('resize', resize);

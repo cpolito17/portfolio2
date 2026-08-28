@@ -1,0 +1,52 @@
+/* ═══ App catalogue ═════════════════════════════════════════
+   Content only. Every variant reads from here, so the copy, the URLs, and the
+   icons are written once and cannot drift between frontends. Nothing in this
+   file emits layout: `tier` is a hint about relative prominence that a variant
+   may honour or ignore. */
+const ICONS = __ICONS__;
+
+const PAL = { '1':'#E8EDF7','2':'#9AA6C4','3':'#4A5578','4':'#E8C170' };
+function iconSVG(name){
+  const rows = ICONS[name]; if (!rows) return '';
+  let r = '';
+  for (let y=0;y<16;y++) for (let x=0;x<16;x++){
+    const c = rows[y][x];
+    if (c === '.') continue;
+    r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${PAL[c]}"/>`;
+  }
+  return `<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+}
+
+const APPS = {
+  cairn: { id:'cairn', name:'Cairn', url:'https://tasks.charliepolito.com/demo', tier:'lg',
+    desc:'Plan the week by dragging tasks onto a calendar grid. Shows which tasks are waiting on others, and keeps personal and work separate.' },
+  compass: { id:'trajectory', name:'Compass', url:'https://charliepolito.com/trajectory', tier:'lg',
+    desc:'Projects your net worth from today to age 100. Drop life events on the timeline and watch the curve move. No account, and nothing leaves your browser.' },
+  localize: { id:'localize', name:'Localize', url:'https://charliepolito.com/localize', tier:'lg',
+    desc:'Search a big-box brand, get the independent shops near you instead. Every result is scored 0 to 100 on how locally owned it actually is.',
+    note:'Requires a login' },
+  apex: { id:'apex', name:'Apex', url:'https://charliepolito.com/apex', tier:'lg',
+    desc:'Ranks the roads worth driving near any address. Colors every corner by how tight it is, and re-sorts instantly when you change the weighting.' },
+
+  ghost: { id:'ghost', name:'Ghost in the Machine', url:'https://charliepolito.com/GhostInTheMachine', tier:'sm',
+    desc:'Learn how language models actually work, one short interactive lesson at a time.' },
+  liteedit: { id:'liteedit', name:'LiteEdit', url:'https://liteedit.charliepolito.com', tier:'sm',
+    desc:'A photo editor that runs in your browser. Layers and full undo, with no upload.' },
+  ttlw: { id:'ttlw', name:'Take the Long Way', url:'https://charliepolito.com/takethelongway', tier:'sm',
+    desc:'Finds the ghost towns and roadside oddities along your route, then sends it to Google Maps.' },
+  keeran: { id:'keeran', name:'Architecture Portfolio', url:'https://keerancross.com', tier:'sm',
+    desc:'Built for my girlfriend. Full Frutiger Aero, down to the Windows 98 cursor.' },
+  taxhaven: { id:'taxhaven', name:'Tax Haven', url:'https://charliepolito.com/taxhaven', tier:'sm',
+    desc:'Redesign the US tax code and federal budget, then simulate what it does to the country.' },
+  homegame: { id:'homegamehero', name:'HomeGameHero', url:'https://charliepolito.com/homegame', tier:'sm',
+    desc:'Chip, blind, and payout math for home poker. Settles the night in the fewest payments.' },
+  payload: { id:'payload', name:'PAYLOAD', url:'https://charliepolito.com/payload', tier:'sm',
+    desc:'A space-mining roguelite. Drill for ore, then survive the launch back to orbit.' }
+};
+
+/* Canonical reading order. This is also the mobile order everywhere, since a
+   single column follows the DOM. Cairn leads; the games and Tax Haven trail. */
+const ORDER = ['cairn','ghost','liteedit','ttlw','keeran','compass','taxhaven','localize','homegame','apex','payload']
+  .map(k => APPS[k]);
+
+const ABOUT_LINK = { id:'about', name:'About me', url:'/about' };

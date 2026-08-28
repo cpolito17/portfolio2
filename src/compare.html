@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hub variants</title>
+<style>
+  :root{ --ink:#101014; --ink-2:#5c5f6b; --line:#dfe0e6; --bg:#f6f6f8; --card:#fff; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:400 15px/1.5 ui-sans-serif,system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  header{padding:2rem clamp(1rem,4vw,2.5rem) 1.25rem;border-bottom:1px solid var(--line);
+    background:var(--card)}
+  h1{margin:0 0 .35rem;font-size:1.25rem;font-weight:600;letter-spacing:-.02em}
+  header p{margin:0;color:var(--ink-2);font-size:.9rem;max-width:70ch}
+  .bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;
+    padding:1rem clamp(1rem,4vw,2.5rem);border-bottom:1px solid var(--line);background:var(--card);
+    position:sticky;top:0;z-index:5}
+  button{font:inherit;font-size:.85rem;padding:.45rem .9rem;border:1px solid var(--line);
+    border-radius:999px;background:var(--card);color:var(--ink);cursor:pointer}
+  button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .sep{width:1px;height:1.5rem;background:var(--line);margin:0 .35rem}
+  .sheet{padding:clamp(1rem,3vw,2rem);display:grid;gap:clamp(1rem,3vw,1.75rem)}
+  .sheet[data-layout="row"]{grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
+  .sheet[data-layout="stack"]{grid-template-columns:1fr;max-width:1400px;margin:0 auto}
+  figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:14px;
+    overflow:hidden;display:flex;flex-direction:column}
+  figcaption{padding:.85rem 1.1rem;border-bottom:1px solid var(--line)}
+  .name{font-weight:600;letter-spacing:-.01em}
+  .name a{color:var(--ink-2);font-weight:400;font-size:.8rem;margin-left:.6rem}
+  .blurb{margin:.2rem 0 0;color:var(--ink-2);font-size:.82rem;line-height:1.45}
+  .frame{position:relative;background:#000;overflow:hidden}
+  iframe{border:0;display:block;transform-origin:0 0;background:#000}
+</style>
+</head>
+<body>
+<header>
+  <h1>Hub variants</h1>
+  <p>Three frontends over one content source. The app copy, URLs, icons, sky engine, and
+  build are identical in all of them &mdash; only layout, type, colour, and interaction differ.
+  About is shared and unchanged, so the hand-off from a variant into About will not match it.</p>
+</header>
+
+<div class="bar">
+  <span style="font-size:.8rem;color:var(--ink-2)">Layout</span>
+  <button data-layout="row" aria-pressed="true">Side by side</button>
+  <button data-layout="stack" aria-pressed="false">Stacked</button>
+  <span class="sep"></span>
+  <span style="font-size:.8rem;color:var(--ink-2)">Viewport</span>
+  <button data-w="1440" aria-pressed="true">Desktop 1440</button>
+  <button data-w="820" aria-pressed="false">Tablet 820</button>
+  <button data-w="390" aria-pressed="false">Phone 390</button>
+</div>
+
+<div class="sheet" data-layout="row" id="sheet"></div>
+
+<script>
+const VARIANTS = __VARIANTS__;
+const sheet = document.getElementById('sheet');
+let vw = 1440;
+
+function build(){
+  sheet.innerHTML = VARIANTS.map(v => `
+    <figure>
+      <figcaption>
+        <div class="name">${v.label}<a href="${v.href}" target="_blank" rel="noopener">open full &nearr;</a></div>
+        <p class="blurb">${v.blurb}</p>
+      </figcaption>
+      <div class="frame"><iframe src="${v.href}" title="${v.label}" loading="lazy"></iframe></div>
+    </figure>`).join('');
+  fit();
+}
+
+/* Each frame renders at the chosen viewport width and is scaled down to fit its
+   column, so what you compare is the real layout at that breakpoint rather than a
+   narrow window of it. */
+function fit(){
+  const vh = Math.round(vw * 0.66);
+  for (const frame of sheet.querySelectorAll('.frame')){
+    const scale = frame.clientWidth / vw;
+    const f = frame.querySelector('iframe');
+    f.style.width = vw + 'px';
+    f.style.height = vh + 'px';
+    f.style.transform = `scale(${scale})`;
+    frame.style.height = Math.round(vh * scale) + 'px';
+  }
+}
+
+document.querySelectorAll('.bar button').forEach(b => b.addEventListener('click', () => {
+  const group = b.dataset.layout ? '[data-layout]' : '[data-w]';
+  document.querySelectorAll('.bar button' + group)
+    .forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+  if (b.dataset.layout) sheet.dataset.layout = b.dataset.layout;
+  else vw = +b.dataset.w;
+  fit();
+}));
+addEventListener('resize', fit);
+build();
+</script>
+</body>
+</html>
