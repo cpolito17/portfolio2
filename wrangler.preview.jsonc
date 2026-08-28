@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+
+  // ── Variant preview ────────────────────────────────────────────────────
+  // A throwaway Worker for reviewing the hub variants in a real browser. It is
+  // deliberately kept apart from the production config in wrangler.jsonc:
+  //
+  //   * different Worker name, so it can never overwrite a live Worker
+  //   * NO routes at all, so it cannot be placed in front of charliepolito.com
+  //     or any of the workers on /apex, /taxhaven, /trajectory and friends
+  //   * workers.dev enabled, so it is reachable at its own subdomain instead
+  //
+  // Deploy with:  npm run deploy:preview
+  // Delete with:  npx wrangler delete --config wrangler.preview.jsonc
+  "name": "portfolio2-variants",
+  "compatibility_date": "2026-08-01",
+
+  // The only way this preview is reachable. Nothing on the zone points at it.
+  "workers_dev": true,
+
+  // Built with PREVIEW=1, so dist/index.html is the variant picker and the
+  // live design sits alongside the alternatives at /current/.
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+
+  // No "routes" key. Adding one here would defeat the point of this file.
+}

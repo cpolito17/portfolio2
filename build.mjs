@@ -19,6 +19,12 @@ const read = p => readFileSync(typeof p === 'string' ? url(p) : p, 'utf8');
 
 const CURRENT = 'current';
 
+/* PREVIEW=1 builds for the throwaway variant-review Worker instead of
+   production. Every variant, CURRENT included, moves under its own path and the
+   picker takes the root, so the deployed site opens on the comparison rather
+   than on one of the things being compared. Production output is untouched. */
+const PREVIEW = !!process.env.PREVIEW;
+
 /* Shared substitutions. Both are large data blobs and are inlined once per page
    that asks for the module holding them. */
 const SUBST = {
@@ -59,28 +65,49 @@ const names = readdirSync(url('./src/variants'), { withFileTypes: true })
   .filter(d => d.isDirectory()).map(d => d.name).sort()
   .sort((a, b) => (a === CURRENT ? -1 : b === CURRENT ? 1 : 0));
 
+/* In a preview build each variant page carries a way back to the picker.
+   Injected here rather than written into any variant, so no variant has to know
+   the review harness exists. */
+const BACKBAR = `
+<a href="/" style="position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:99;
+  display:flex;gap:.5rem;align-items:center;padding:.4rem .85rem;border-radius:999px;
+  background:rgba(10,12,20,.82);color:#fff;border:1px solid rgba(255,255,255,.22);
+  font:500 12px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.04em;
+  text-decoration:none;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)">
+  &larr; All variants</a>`;
+
 const built = [];
+let currentHTML = '';
 for (const name of names){
   const v = JSON.parse(read(`./src/variants/${name}/variant.json`));
-  const html = render(`./src/variants/${name}/index.html`, v.css, v.js);
-  emit(name === CURRENT ? 'index.html' : `${name}/index.html`, html);
-  built.push({ name, ...v, href: name === CURRENT ? 'index.html' : `${name}/index.html` });
+  let html = render(`./src/variants/${name}/index.html`, v.css, v.js);
+  if (name === CURRENT) currentHTML = html;
+  if (PREVIEW) html = html.replace('</body>', () => BACKBAR + '\n</body>');
+  const path = (name === CURRENT && !PREVIEW) ? 'index.html' : `${name}/index.html`;
+  emit(path, html);
+  built.push({ name, ...v, href: path });
 }
 
 /* ── About, shared by every variant ───────────────────────── */
-emit('about.html', render('./src/about.html',
-  ['core/base.css', 'core/about.css'],
-  ['core/sky.js', 'core/about.js', 'core/nav.js']));
+{
+  let html = render('./src/about.html',
+    ['core/base.css', 'core/about.css'],
+    ['core/sky.js', 'core/about.js', 'core/nav.js']);
+  if (PREVIEW) html = html.replace('</body>', () => BACKBAR + '\n</body>');
+  emit('about.html', html);
+}
 
 /* ── Preview ──────────────────────────────────────────────
    The CURRENT hub with the document wrapper stripped, for embedding in hosts
    that supply their own <head>/<body> skeleton. Not served by the Worker. */
-emit('preview.html', read(url('./dist/index.html'))
+emit('preview.html', currentHTML
   .replace(/^[\s\S]*?<title>/, '<title>')
   .replace(/<\/head>\s*<body>/, '')
   .replace(/<\/body>\s*<\/html>\s*$/, ''));
 
-/* ── Review index ─────────────────────────────────────────── */
-emit('compare.html', read('./src/compare.html')
+/* ── Review index ─────────────────────────────────────────
+   Served at /compare in a production build and at / in a preview one. */
+const compare = read('./src/compare.html')
   .replace('__VARIANTS__', () => JSON.stringify(built.map(
-    ({ name, label, blurb, href }) => ({ name, label, blurb, href })))));
+    ({ name, label, blurb, href }) => ({ name, label, blurb, href }))));
+emit(PREVIEW ? 'index.html' : 'compare.html', compare);

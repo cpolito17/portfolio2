@@ -68,9 +68,38 @@ render options. None of them can drift on content, because none of them own any.
 
 `current` builds to `dist/index.html` and is what deploys. The rest build to
 `dist/<name>/index.html` and are claimed by no route in `wrangler.jsonc`, so they
-exist for review only. To review them, `npm run build` and open `dist/compare.html`,
-which frames every variant side by side at three viewport widths. `node shots.mjs`
-renders them all to `shots/` instead.
+exist for review only. To review them locally, `npm run build` and open
+`dist/compare.html`, which frames every variant side by side at three viewport
+widths. `npm run shots` renders them all to `shots/` instead.
+
+### Reviewing them in a browser
+
+`npm run deploy:preview` puts every variant on a throwaway Worker at its own
+workers.dev subdomain:
+
+```bash
+npm run dev:preview      # locally, on http://localhost:8787
+npm run deploy:preview   # to portfolio2-variants.<subdomain>.workers.dev
+```
+
+It uses `wrangler.preview.jsonc`, which is deliberately kept apart from the
+production config: a different Worker name, `workers_dev` on, and **no routes at
+all**, so it cannot be placed in front of `charliepolito.com` or any of the
+Workers on `/apex`, `/taxhaven`, `/trajectory` and friends.
+
+A preview build (`PREVIEW=1`) differs from a production one in two ways: the
+picker takes the root and the live design moves to `/current/`, so the site opens
+on the comparison rather than on one of the things being compared; and each page
+gets a small fixed link back to the picker, injected at build time so no variant
+has to know the review harness exists.
+
+| | |
+|---|---|
+| `/` | the picker |
+| `/current`, `/a` … `/e` | one variant each |
+| `/about` | the shared About page |
+
+Tear it down with `npx wrangler delete --config wrangler.preview.jsonc`.
 
 The About page is shared and unchanged across every variant, so the hand-off from a
 variant into About does not match it. That is expected while the hubs are under
