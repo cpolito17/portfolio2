@@ -1,0 +1,8 @@
+{
+  "label": "V4 · Deep-space Signal",
+  "order": 4,
+  "blurb": "A deep-space telemetry display with phosphor scanlines, monochrome glyphs, clipped targets, and a restrained CRT pulse.",
+  "html": "./src/variants/orbit/index.html",
+  "css": ["core/base.css", "variants/orbit/styles.css", "variants/v-signal/styles.css"],
+  "js": ["variants/v-signal/theme.js", "core/sky.js", "core/apps.js", "core/resume.js", "variants/orbit/hub.js", "core/nav.js"]
+}

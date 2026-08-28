@@ -1,0 +1,8 @@
+{
+  "label": "V5 · Lunar Atlas",
+  "order": 5,
+  "blurb": "A quiet lunar atlas in smoky graphite and moonlit lilac, with silver icons, thin celestial rules, and very slow motion.",
+  "html": "./src/variants/orbit/index.html",
+  "css": ["core/base.css", "variants/orbit/styles.css", "variants/v-lunar/styles.css"],
+  "js": ["variants/v-lunar/theme.js", "core/sky.js", "core/apps.js", "core/resume.js", "variants/orbit/hub.js", "core/nav.js"]
+}

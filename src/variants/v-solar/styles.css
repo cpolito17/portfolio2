@@ -1,0 +1,42 @@
+/* Solar Press: a printed scientific plate rather than a night display. */
+body.orbit{
+  --ink:#2a201c;--ink-2:rgba(42,32,28,.72);--ink-3:rgba(42,32,28,.48);
+  --ground:#f2e5ca;--accent:#b73727;
+  --font:Georgia,"Times New Roman",ui-serif,serif;
+  background:#f2e5ca;
+}
+.orbit .stage{background:linear-gradient(135deg,rgba(247,237,215,.72),rgba(235,209,166,.54))}
+.orbit #sky{opacity:.36;filter:sepia(.35) contrast(.88)}
+.orbit #trail{mix-blend-mode:multiply}
+.orbit .stage::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.28;
+  background-image:radial-gradient(rgba(70,45,32,.18) .55px,transparent .7px);
+  background-size:5px 5px}
+.orbit .side{background:linear-gradient(90deg,rgba(248,238,215,.98),rgba(243,226,194,.94) 78%,
+  rgba(239,218,181,.6) 94%,transparent)}
+.orbit .wordmark{font-size:1.45rem;font-weight:600;letter-spacing:-.035em}
+.orbit .brand-sub,.orbit .rate,.orbit .row-num,.orbit .det-meta{font-family:Arial,sans-serif;
+  letter-spacing:.13em;text-transform:uppercase}
+.orbit .row{border-left:3px solid transparent;border-radius:0;color:var(--ink-2)}
+.orbit .row[data-on="true"]{color:var(--ink);border-left-color:var(--accent)}
+.orbit .row-bg{mix-blend-mode:multiply;opacity:.7}
+.orbit .row-num{font-weight:700}
+.orbit .detail{border-left:1px solid rgba(61,39,29,.18)}
+.orbit .det-name{font-size:1.18rem;font-weight:600}
+.orbit .det-meta{border-top-color:rgba(61,39,29,.18)}
+.orbit .about{background:linear-gradient(90deg,#f7ecd5 0%,#f0dbb8 100%)}
+.orbit .about-open,.orbit .about-back,.orbit .det-open,.orbit .star-label{
+  font-family:Arial,sans-serif;border-bottom:2px solid currentColor}
+.orbit .node{color:rgba(47,31,25,.64)}
+.orbit .node-dot{border-radius:0;background:#f4e4c5;border:1px solid rgba(56,35,27,.42);
+  box-shadow:3px 3px 0 rgba(70,40,27,.12)}
+.orbit .node-dot svg{filter:sepia(1) saturate(.7) contrast(1.3)}
+.orbit .node[data-on="true"] .node-dot{background:#f2c781;border-color:var(--accent);
+  box-shadow:4px 4px 0 rgba(183,55,39,.17)}
+.orbit .node-name{text-shadow:0 1px 0 #f6ead2,0 0 5px #f6ead2;font-family:Arial,sans-serif;
+  font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.orbit .star-ring{border:1px solid rgba(132,54,34,.5);border-radius:0;transform:rotate(45deg)}
+.orbit .star-label{text-shadow:0 1px 0 #f4e4c6}
+.orbit .page-enter{animation:solar-enter .42s steps(6,end) both}
+.orbit .det-in{animation:solar-detail .22s ease-out both}
+@keyframes solar-enter{from{opacity:0;clip-path:inset(0 100% 0 0)}to{opacity:1;clip-path:inset(0)}}
+@keyframes solar-detail{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}

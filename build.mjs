@@ -113,7 +113,10 @@ const BACKBAR = `
 const built = [];
 for (const name of names){
   const v = JSON.parse(read(`./src/variants/${name}/variant.json`));
-  const html = render(`./src/variants/${name}/index.html`, v.css, v.js);
+  /* A visual-only variant may reuse another variant's shell. This makes the
+     fixed-layout comparison explicit and prevents copied markup from drifting. */
+  const shell = v.html ?? `./src/variants/${name}/index.html`;
+  const html = render(shell, v.css, v.js);
 
   /* CURRENT is emitted twice: once at the root, which is the live site, and
      once under the review prefix so the picker can frame it beside the

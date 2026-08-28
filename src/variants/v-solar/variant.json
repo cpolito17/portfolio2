@@ -1,0 +1,8 @@
+{
+  "label": "V2 · Solar Observatory",
+  "order": 2,
+  "blurb": "A printed observatory chart: warm paper, carbon ink, vermilion solar marks, square icon blocks, and crisp motion.",
+  "html": "./src/variants/orbit/index.html",
+  "css": ["core/base.css", "variants/orbit/styles.css", "variants/v-solar/styles.css"],
+  "js": ["variants/v-solar/theme.js", "core/sky.js", "core/apps.js", "core/resume.js", "variants/orbit/hub.js", "core/nav.js"]
+}

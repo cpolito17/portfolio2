@@ -1,0 +1,38 @@
+/* Aurora Glass: soft depth, luminous edges, and relaxed motion. */
+body.orbit{
+  --ink:#f5fbff;--ink-2:rgba(229,244,255,.72);--ink-3:rgba(214,232,245,.48);
+  --ground:#020711;--accent:#69f0d2;
+  --font:Inter,Avenir,"Segoe UI",ui-sans-serif,system-ui,sans-serif;
+  background:
+    radial-gradient(circle at 78% 18%,rgba(112,76,204,.2),transparent 32%),
+    radial-gradient(circle at 35% 82%,rgba(45,196,177,.14),transparent 35%),var(--ground);
+}
+.orbit #sky{filter:saturate(1.28) contrast(1.04)}
+.orbit .stage::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(118deg,transparent 42%,rgba(126,246,221,.035) 50%,transparent 58%);
+  animation:aurora-sweep 12s ease-in-out infinite alternate}
+.orbit .side{background:linear-gradient(90deg,rgba(4,10,24,.94),rgba(9,21,42,.8) 72%,
+  rgba(17,40,58,.34) 94%,transparent);backdrop-filter:blur(12px)}
+.orbit .wordmark{font-size:1.25rem;letter-spacing:-.045em}
+.orbit .brand-sub{color:rgba(163,224,230,.58)}
+.orbit .row{border-left-width:1px;border-radius:.7rem;overflow:hidden;
+  transition:color .3s ease,border-color .3s ease,letter-spacing .3s ease}
+.orbit .row[data-on="true"]{letter-spacing:.015em;box-shadow:inset 0 0 22px rgba(77,235,205,.06)}
+.orbit .row-num{font-variant-numeric:tabular-nums}
+.orbit .detail{border-left-color:rgba(120,236,218,.12)}
+.orbit .det-meta{border-top-color:rgba(139,226,226,.13)}
+.orbit .about{background:linear-gradient(100deg,rgba(3,10,24,.985),rgba(14,35,50,.96));
+  backdrop-filter:blur(20px)}
+.orbit .node-dot{border-color:rgba(190,224,255,.2);background:rgba(8,22,41,.72);
+  border-radius:42%;box-shadow:inset 0 0 12px rgba(122,107,231,.08)}
+.orbit .node-dot svg{filter:drop-shadow(0 0 4px rgba(105,240,210,.42))}
+.orbit .node[data-on="true"] .node-dot{background:rgba(74,219,196,.18);
+  box-shadow:0 0 0 4px rgba(105,240,210,.1),0 0 24px rgba(116,91,235,.34)}
+.orbit .star-ring{border:1px solid rgba(105,240,210,.17);
+  animation:aurora-breathe 4.8s ease-in-out infinite}
+.orbit .about-open,.orbit .about-back,.orbit .star-label{border-bottom-style:solid}
+.orbit .page-enter{animation:aurora-enter .8s cubic-bezier(.16,1,.3,1) both}
+@keyframes aurora-enter{from{opacity:0;filter:blur(8px);transform:scale(1.015)}to{opacity:1;filter:none;transform:none}}
+@keyframes aurora-breathe{50%{box-shadow:0 0 30px rgba(105,240,210,.2),0 0 55px rgba(128,93,231,.12)}}
+@keyframes aurora-sweep{to{transform:translateX(8%)}}
+

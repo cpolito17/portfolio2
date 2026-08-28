@@ -1,0 +1,39 @@
+/* Lunar Editorial: restrained contrast, serif detail, and near-static motion. */
+body.orbit{
+  --ink:#f2eff3;--ink-2:rgba(230,224,232,.7);--ink-3:rgba(209,200,214,.43);
+  --ground:#09090e;--accent:#d2c2e1;
+  --font:Georgia,"Times New Roman",ui-serif,serif;
+  background:radial-gradient(circle at 75% 42%,#22202b 0,transparent 43%),#09090e;
+}
+.orbit #sky{opacity:.72;filter:grayscale(.38)}
+.orbit #trail{opacity:.62}
+.orbit .side{background:linear-gradient(90deg,rgba(10,10,15,.97),rgba(20,18,27,.91) 80%,
+  rgba(32,29,39,.3) 96%,transparent);backdrop-filter:blur(8px)}
+.orbit .wordmark{font-size:1.4rem;font-weight:400;letter-spacing:-.035em}
+.orbit .brand-sub,.orbit .row-num,.orbit .rate,.orbit .det-meta{
+  font-family:Inter,"Segoe UI",sans-serif;letter-spacing:.09em}
+.orbit .row{border-left:1px solid transparent;border-radius:0;padding-top:.58rem;padding-bottom:.58rem;
+  transition:color .55s ease,border-color .55s ease}
+.orbit .row-bg{opacity:.44;filter:grayscale(.5)}
+.orbit .row[data-on="true"]{border-left-color:var(--accent)}
+.orbit .row-name{font-size:.86rem}
+.orbit .detail{border-left-color:rgba(226,215,233,.1)}
+.orbit .det-name{font-size:1.2rem;font-weight:400}
+.orbit .det-meta{border-top-color:rgba(226,215,233,.1)}
+.orbit .about{background:linear-gradient(90deg,rgba(10,10,15,.99),rgba(27,24,34,.98))}
+.orbit .about-scroll h2{font-weight:400;font-size:1.65rem}
+.orbit .about-scroll h3{font-family:Inter,"Segoe UI",sans-serif}
+.orbit .node-dot{border-radius:999px;background:rgba(20,19,26,.76);
+  border:1px solid rgba(225,216,233,.18)}
+.orbit .node-dot svg{filter:grayscale(1) brightness(1.15);opacity:.78}
+.orbit .node[data-on="true"] .node-dot{background:rgba(204,187,218,.12);
+  box-shadow:0 0 0 1px rgba(219,205,231,.24),0 0 22px rgba(186,164,207,.18)}
+.orbit .node-name{font-style:italic;text-shadow:0 2px 7px #09090e,0 0 12px #09090e}
+.orbit .star-ring{border:1px solid rgba(210,194,225,.2)}
+.orbit .star-label{font-family:Inter,"Segoe UI",sans-serif;border-bottom:1px solid rgba(210,194,225,.35)}
+.orbit .about-open,.orbit .about-back{font-family:Inter,"Segoe UI",sans-serif;border-bottom-style:solid}
+.orbit .page-enter{animation:lunar-enter 1.2s cubic-bezier(.22,1,.36,1) both}
+.orbit .det-in{animation:lunar-detail .6s ease both}
+@keyframes lunar-enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes lunar-detail{from{opacity:0}to{opacity:1}}
+

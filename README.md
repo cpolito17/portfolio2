@@ -64,6 +64,16 @@ render options. None of them can drift on content, because none of them own any.
 | `c` | **Dissolve** — panels made of dither, edges breaking up into the sky |
 | `d` | **Orbit** — looking down on the ecliptic; apps share the inner planets' orbits |
 | `e` | **Constellation** — apps as stars at real altitudes, joined into one figure |
+| `orbit` | **Orbit** — the selected composite and fixed baseline for the visual round |
+| `v-aurora` | **Aurora Nebula** — mint and violet light over deep-space glass |
+| `v-solar` | **Solar Observatory** — a warm printed astronomical chart |
+| `v-blueprint` | **Mission Blueprint** — cobalt orbital grid and cyan instrument lines |
+| `v-signal` | **Deep-space Signal** — phosphor telemetry display with scanlines |
+| `v-lunar` | **Lunar Atlas** — graphite, lilac, and restrained serif type |
+
+The five `v-*` entries reuse Orbit's HTML and behaviour through the optional
+`html` field in `variant.json`. Each owns only a CSS theme and canvas palette,
+so their layout, content, interactions, and responsive structure cannot drift.
 
 `current` builds to `dist/index.html` and is the live site. Every variant,
 `current` included, is also built under `/preview/` for review.

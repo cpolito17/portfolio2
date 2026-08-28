@@ -9,6 +9,20 @@
    210,000x, which is what makes the motion honest rather than decorative. */
 (() => {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* Visual variants can replace the canvas palette and motion rate without
+     forking the orbit behaviour. An absent config preserves Orbit byte-for-
+     byte at runtime. */
+  const THEME = Object.assign({
+    plate:[30,42,72], grain:16, motion:1,
+    sunRamp:[[255,248,222],[255,232,168],[236,190,116],[178,136,78]],
+    planetRamp:[[214,228,255],[150,178,226],[96,124,176],[60,82,124]],
+    cometCool:[[255,255,255],[214,232,255],[150,186,246],[86,126,196]],
+    cometWarm:[[255,255,255],[255,232,190],[240,186,120],[190,126,70]],
+    cometHead:'#ffffff', rocketTrail:'rgba(232,193,112,.8)', rocketHead:'#fff3d2',
+    sparkWarm:'rgba(255,214,150,.9)', sparkCool:'rgba(198,220,255,.9)',
+    orbitActive:'rgba(232,193,112,.9)', orbitIdle:'rgba(150,170,210,.4)',
+    orbitFaint:'rgba(150,170,210,.26)'
+  }, window.ORBIT_THEME || {});
 
   /* ═══ 1. Rings ════════════════════════════════════════════
      Radii are logarithmic in semi-major axis. A linear plot is technically
@@ -96,7 +110,7 @@
      dither is what fills it in: as `lit` rises, pixels switch on in Bayer
      order. The wipe IS the animation, and there is no soft edge anywhere. */
   const DIV = 3;
-  const PLATE = [30, 42, 72], GRAIN = 16;
+  const PLATE = THEME.plate, GRAIN = THEME.grain;
 
   const plates = rows.map(el => ({
     el, cv: el.querySelector('.row-bg'), ctx: null, w: 0, h: 0, lit: 0, target: 0
@@ -196,8 +210,8 @@
     }
   }
 
-  const SUN_RAMP  = [[255,248,222],[255,232,168],[236,190,116],[178,136,78]];
-  const PLAN_RAMP = [[214,228,255],[150,178,226],[96,124,176],[60,82,124]];
+  const SUN_RAMP  = THEME.sunRamp;
+  const PLAN_RAMP = THEME.planetRamp;
 
   /* ═══ 7. Traffic ═════════════════════════════════════════ */
 
@@ -254,8 +268,8 @@
                   life: 0, trail: [] });
   }
 
-  const COOL = [[255,255,255],[214,232,255],[150,186,246],[86,126,196]];
-  const WARM = [[255,255,255],[255,232,190],[240,186,120],[190,126,70]];
+  const COOL = THEME.cometCool;
+  const WARM = THEME.cometWarm;
 
   /* The streak is drawn as a ramp along its own length rather than one flat
      colour: white at the head, cooling and thinning down the tail, with the
@@ -276,7 +290,7 @@
       tctx.fillStyle = `rgb(${col[0]},${col[1]},${col[2]})`;
       tctx.fillRect(px, py, wpx, wpx);
     }
-    tctx.fillStyle = '#ffffff';
+    tctx.fillStyle = THEME.cometHead;
     tctx.fillRect((c.x-1)|0, (c.y-1)|0, 3, 3);
   }
 
@@ -302,10 +316,10 @@
         const tx = k.trail[j][0]|0, ty = k.trail[j][1]|0;
         if (tx < 0 || ty < 0 || tx >= w || ty >= h) continue;
         if (f*f*1.35 <= BAY[ty & 7][tx & 7]) continue;
-        ctx.fillStyle = 'rgba(232,193,112,.8)';
+        ctx.fillStyle = THEME.rocketTrail;
         ctx.fillRect(tx, ty, 1, 1);
       }
-      ctx.fillStyle = '#fff3d2';
+      ctx.fillStyle = THEME.rocketHead;
       ctx.fillRect((x-1)|0, (y-1)|0, 2, 2);
     }
 
@@ -331,7 +345,7 @@
       const px = s.x|0, py = s.y|0;
       if (px < 0 || py < 0 || px >= TW || py >= TH) continue;
       if (f*f*1.5 <= BAY[py & 7][px & 7]) continue;
-      tctx.fillStyle = s.hue === 'warm' ? 'rgba(255,214,150,.9)' : 'rgba(198,220,255,.9)';
+      tctx.fillStyle = s.hue === 'warm' ? THEME.sparkWarm : THEME.sparkCool;
       tctx.fillRect(px, py, 1, 1);
     }
   }
@@ -357,11 +371,11 @@
     const RC = cvX(R);
     const sunR   = Math.max(3.2, Math.min(6.2, RC*0.05));
     const planR  = Math.max(1.4, Math.min(2.4, RC*0.018));
-    if (RC > 60) ring(cx, cy, cvX(MERCURY.f*R), 'rgba(150,170,210,.26)', 0.5);
+    if (RC > 60) ring(cx, cy, cvX(MERCURY.f*R), THEME.orbitFaint, 0.5);
     RINGS.forEach((rg, i) => {
       const on = active >= 0 && seats[active].ring === i;
       ring(cx, cy, cvX(frac(rg.a)*R),
-           on ? 'rgba(232,193,112,.9)' : 'rgba(150,170,210,.4)',
+           on ? THEME.orbitActive : THEME.orbitIdle,
            on ? 1 : 0.55);
     });
 
@@ -516,7 +530,8 @@
      moves here: the plot, the nodes, and any row still igniting. */
   const FRAME = 1000/12;
   let last = 0;
-  document.getElementById('rate').textContent = `orbits at ${SPEEDUP.toLocaleString()}×`;
+  document.getElementById('rate').textContent =
+    `orbits at ${Math.round(SPEEDUP * THEME.motion).toLocaleString()}×`;
 
   function layout(){
     for (const p of plates) if (measurePlate(p)) paintPlate(p);
@@ -536,9 +551,9 @@
       p.lit += (p.target - p.lit) * 0.3;
       paintPlate(p);
     }
-    if (!reduce){ clock += dt; walk(dt); }
+    if (!reduce){ clock += dt * THEME.motion; walk(dt); }
     draw();
-    stepTraffic(reduce ? 0 : dt);
+    stepTraffic(reduce ? 0 : dt * THEME.motion);
     placeNodes();
   }
 

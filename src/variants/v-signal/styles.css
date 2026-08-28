@@ -1,0 +1,43 @@
+/* Signal: monochrome phosphor with light CRT texture. */
+body.orbit{
+  --ink:#c9ffd0;--ink-2:rgba(164,248,176,.72);--ink-3:rgba(126,213,142,.48);
+  --ground:#000905;--accent:#70ff86;
+  --font:"Courier New",ui-monospace,monospace;
+  background:#000905;text-shadow:0 0 5px rgba(75,255,105,.14);
+}
+.orbit .stage::before{content:"";position:fixed;inset:0;z-index:9;pointer-events:none;opacity:.32;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.22) 0,rgba(0,0,0,.22) 1px,
+    transparent 1px,transparent 4px);animation:signal-roll 9s linear infinite}
+.orbit .stage::after{content:"";position:fixed;inset:0;z-index:8;pointer-events:none;
+  box-shadow:inset 0 0 120px rgba(0,0,0,.78);animation:signal-pulse 4.5s steps(2,end) infinite}
+.orbit #sky{filter:contrast(1.18) saturate(.8)}
+.orbit .side{background:linear-gradient(90deg,rgba(0,12,6,.97),rgba(0,23,10,.91) 80%,
+  rgba(0,35,15,.28) 96%,transparent)}
+.orbit .wordmark{text-transform:uppercase;letter-spacing:.12em;font-size:1.02rem}
+.orbit .brand-sub{text-transform:uppercase;letter-spacing:.06em}
+.orbit .row{border-left:1px solid transparent;border-radius:0;text-transform:uppercase;
+  transition:none}
+.orbit .row[data-on="true"]{border-left-color:var(--accent);text-shadow:0 0 8px rgba(112,255,134,.5)}
+.orbit .row[data-on="true"]::after{content:"_";position:absolute;right:.4rem;color:var(--accent);
+  animation:signal-cursor .9s steps(1,end) infinite}
+.orbit .row-bg{opacity:.72}
+.orbit .detail{border-left:1px dotted rgba(112,255,134,.24)}
+.orbit .det-name,.orbit .about-scroll h2{text-transform:uppercase;letter-spacing:.06em}
+.orbit .det-meta{border-top:1px dotted rgba(112,255,134,.24)}
+.orbit .about{background:rgba(0,16,7,.985);border-right:1px solid rgba(112,255,134,.3)}
+.orbit .node-dot{border-radius:0;clip-path:polygon(20% 0,80% 0,100% 20%,100% 80%,80% 100%,20% 100%,0 80%,0 20%);
+  background:rgba(0,19,8,.9);border:0;outline:1px solid rgba(112,255,134,.4);outline-offset:-2px}
+.orbit .node-dot svg{filter:grayscale(1) brightness(1.5) sepia(1) hue-rotate(70deg) saturate(8)}
+.orbit .node[data-on="true"] .node-dot{background:rgba(63,205,82,.2);
+  box-shadow:0 0 18px rgba(101,255,123,.5)}
+.orbit .node-name{text-transform:uppercase;text-shadow:0 0 6px #000,0 0 10px #000}
+.orbit .star-ring{border:1px dotted var(--accent);animation:signal-cursor 1.2s steps(1,end) infinite}
+.orbit .about-open,.orbit .about-back,.orbit .star-label{border-bottom-style:solid;text-transform:uppercase}
+.orbit .page-enter{animation:signal-on .5s steps(6,end) both}
+.orbit .det-in{animation:signal-detail .2s steps(2,end) both}
+@keyframes signal-on{0%{opacity:0;transform:scaleY(.01)}55%{opacity:1;transform:scaleY(.01)}100%{transform:none}}
+@keyframes signal-detail{from{opacity:0}to{opacity:1}}
+@keyframes signal-cursor{50%{opacity:.15}}
+@keyframes signal-roll{to{background-position:0 40px}}
+@keyframes signal-pulse{50%{opacity:.92}}
+

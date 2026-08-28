@@ -1,0 +1,40 @@
+/* Blueprint: strict geometry and visible construction lines. */
+body.orbit{
+  --ink:#e7fbff;--ink-2:rgba(205,241,249,.72);--ink-3:rgba(177,224,237,.48);
+  --ground:#041a37;--accent:#54e5f3;
+  --font:"Arial Narrow","Roboto Condensed",Arial,ui-sans-serif,sans-serif;
+  background:#041a37;
+}
+.orbit .stage::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:linear-gradient(rgba(92,209,234,.075) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(92,209,234,.075) 1px,transparent 1px),
+    linear-gradient(rgba(92,209,234,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(92,209,234,.035) 1px,transparent 1px);
+  background-size:80px 80px,80px 80px,16px 16px,16px 16px}
+.orbit #sky{opacity:.74;mix-blend-mode:screen}
+.orbit .side{background:linear-gradient(90deg,rgba(3,25,56,.98),rgba(5,40,74,.9) 82%,
+  rgba(8,56,91,.3) 96%,transparent)}
+.orbit .wordmark{text-transform:uppercase;font-size:1.1rem;letter-spacing:.1em}
+.orbit .brand-sub{font-family:"Courier New",monospace;text-transform:uppercase;letter-spacing:.08em}
+.orbit .row{border-left:1px solid transparent;border-radius:0;
+  border-bottom:1px solid rgba(95,222,242,.08);transition:color .12s steps(3,end),border-color .12s steps(3,end)}
+.orbit .row[data-on="true"]{border-left:4px double var(--accent)}
+.orbit .row-num,.orbit .rate,.orbit .det-meta{font-family:"Courier New",monospace}
+.orbit .detail{border-left:1px dashed rgba(91,221,241,.22)}
+.orbit .det-name{text-transform:uppercase;letter-spacing:.08em}
+.orbit .det-meta{border-top-style:dashed;border-top-color:rgba(91,221,241,.22)}
+.orbit .about{background:rgba(3,28,60,.98);border-right:1px dashed var(--accent)}
+.orbit .node-dot{border-radius:0;background:rgba(4,35,71,.88);border:1px solid rgba(102,224,242,.45);
+  transform:rotate(45deg)}
+.orbit .node-dot svg{transform:rotate(-45deg);filter:grayscale(1) brightness(1.8) sepia(1) hue-rotate(135deg) saturate(5)}
+.orbit .node[data-on="true"] .node-dot{background:rgba(45,187,211,.2);
+  box-shadow:0 0 0 1px #041a37,0 0 0 3px var(--accent),0 0 18px rgba(84,229,243,.3)}
+.orbit .node-name{font-family:"Courier New",monospace;text-transform:uppercase;letter-spacing:.08em}
+.orbit .star-ring{border:1px dashed var(--accent);animation:blueprint-spin 18s linear infinite}
+.orbit .star-label,.orbit .about-open,.orbit .about-back{border-bottom-style:solid}
+.orbit .page-enter{animation:blueprint-enter .38s steps(8,end) both}
+.orbit .det-in{animation:blueprint-detail .18s steps(3,end) both}
+@keyframes blueprint-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes blueprint-detail{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+@keyframes blueprint-spin{to{transform:rotate(360deg)}}
+

@@ -1,0 +1,8 @@
+{
+  "label": "V3 · Mission Blueprint",
+  "order": 3,
+  "blurb": "An orbital mission plan: cobalt drafting grid, cyan construction lines, square targets, and stepped instrument motion.",
+  "html": "./src/variants/orbit/index.html",
+  "css": ["core/base.css", "variants/orbit/styles.css", "variants/v-blueprint/styles.css"],
+  "js": ["variants/v-blueprint/theme.js", "core/sky.js", "core/apps.js", "core/resume.js", "variants/orbit/hub.js", "core/nav.js"]
+}

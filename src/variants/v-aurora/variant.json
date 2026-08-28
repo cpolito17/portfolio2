@@ -1,0 +1,8 @@
+{
+  "label": "V1 · Aurora Nebula",
+  "order": 1,
+  "blurb": "A deep-space aurora: mint and violet nebula light, soft halos, rounded icon capsules, and slow breathing motion.",
+  "html": "./src/variants/orbit/index.html",
+  "css": ["core/base.css", "variants/orbit/styles.css", "variants/v-aurora/styles.css"],
+  "js": ["variants/v-aurora/theme.js", "core/sky.js", "core/apps.js", "core/resume.js", "variants/orbit/hub.js", "core/nav.js"]
+}
