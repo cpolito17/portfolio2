@@ -33,8 +33,8 @@ const APPS = {
     note:'Requires a login' },
   apex: { id:'apex', name:'Apex', url:'https://charliepolito.com/apex', tier:'lg',
     desc:'Ranks the roads worth driving near any address. Colors every corner by how twisty it is, and re-sorts instantly when you change the weighting.' },
-  garagebuilder: { id:'garagebuilder', name:'Garage Builder', url:'https://charliepolito.com/garagebuilder', tier:'lg',
-    desc:'Lay out a garage to scale and see what actually fits. Drag in cars, benches, lifts and shelving, and the plan tells you where the clearances stop working.' },
+  garagechallenge: { id:'garagechallenge', name:'Garage Challenge', url:'https://garagechallenge.lol', tier:'lg',
+    desc:'Split one car budget across several cars that each do a different job. Picking a rougher condition does not filter the list, it re-prices it. Then dare someone to beat your garage.' },
 
   ghost: { id:'ghost', name:'Ghost in the Machine', url:'https://charliepolito.com/GhostInTheMachine', tier:'sm',
     desc:'Learn how language models actually work, one short interactive lesson at a time.' },
@@ -59,7 +59,7 @@ const APPS = {
    slot that only surfaced as a TypeError once a variant read `.url` off it,
    taking the whole hub down with a blank page, so the miss is thrown here
    instead, naming the bad key. */
-const ORDER = ['compass','cairn','apex','garagebuilder','localize','ttlw','keeran','liteedit','ghost','homegame','taxhaven','payload']
+const ORDER = ['compass','cairn','apex','garagechallenge','localize','ttlw','keeran','liteedit','ghost','homegame','taxhaven','payload']
   .map(k => { const app = APPS[k]; if (!app) throw new Error(`apps.js: ORDER names "${k}", which is not in APPS`); return app; });
 
 const ABOUT_LINK = { id:'about', name:'About me', url:'/about' };
