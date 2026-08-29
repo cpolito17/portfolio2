@@ -21,7 +21,7 @@
 
   const IDLE = `
     <div class="read-body">
-      <p class="read-idle"><b>Eleven apps</b>Every one started as a problem I wanted
+      <p class="read-idle"><b>Twelve apps</b>Every one started as a problem I wanted
       solved for myself. Pick one from the index to read what it does.</p>
     </div>`;
 

@@ -1,5 +1,5 @@
 /* ═══ E · Constellation ═════════════════════════════════════
-   Eleven app-stars in the real sky. Each is authored as a position in the
+   Twelve app-stars in the real sky. Each is authored as a position in the
    frame, converted once through the engine's own unproject() into an altitude
    and azimuth, and from then on projected like any catalogue star: it is
    occluded by the Earth's limb, it sits in the same projection as everything
@@ -21,12 +21,12 @@
   const FRAME = [
     [-0.72,  0.52], [-0.44,  0.74], [-0.14,  0.56], [ 0.16,  0.70],
     [ 0.30,  0.34], [ 0.06,  0.16], [-0.24,  0.22], [-0.54,  0.14],
-    [-0.80, -0.12], [-0.36, -0.28], [ 0.00, -0.46]
+    [-0.80, -0.12], [-0.36, -0.28], [ 0.00, -0.46], [ 0.30, -0.16]
   ];
   /* The figure. Index pairs into ORDER, chosen to read as one joined shape
      rather than a chain, so no app is a dead end. */
   const EDGES = [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,2],[6,7],[7,0],
-                 [7,8],[8,9],[9,10],[10,5]];
+                 [7,8],[8,9],[9,10],[10,5],[10,11],[11,4]];
 
   host.innerHTML = ORDER.map((a, i) => `
     <li>
@@ -104,7 +104,7 @@
   }
 
   /* ── Selection ────────────────────────────────────────── */
-  const IDLE = `<div class="call-in"><p class="call-idle"><b>Eleven apps, joined
+  const IDLE = `<div class="call-in"><p class="call-idle"><b>Twelve apps, joined
     into one figure.</b> Each sits at a real altitude and azimuth in tonight's sky
     over Michigan, and is occluded by the Earth like anything else out there.
     Pick a star.</p></div>`;

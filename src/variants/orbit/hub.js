@@ -36,7 +36,7 @@
   const RINGS = [
     { planet:'Venus', a: ELEM.Venus[0], count: 4 },
     { planet:'Earth', a: ELEM.Earth[0], count: 4 },
-    { planet:'Mars',  a: ELEM.Mars[0],  count: 3 }
+    { planet:'Mars',  a: ELEM.Mars[0],  count: 4 }
   ];
   const L0 = Math.log(RINGS[0].a), L1 = Math.log(RINGS[2].a);
   /* Only the three app rings are spread across the log range. Mercury is well
@@ -92,7 +92,7 @@
   const rows  = [...index.querySelectorAll('.row')];
   const nodes = [...nodesEl.querySelectorAll('.node')];
   document.getElementById('sideContact').innerHTML = RESUME.links.map(link =>
-    `<a href="${link.url}"${link.external ? ' target="_blank" rel="noopener noreferrer"' : ''}>${link.label}</a>`
+    `<a href="${link.url}"${link.external ? ' target="_blank" rel="me noopener noreferrer"' : ''}>${link.label}</a>`
   ).join('');
 
   /* ═══ 3. Dither ═══════════════════════════════════════════ */
@@ -544,7 +544,7 @@
   }
 
   /* ═══ 9. Selection ════════════════════════════════════════ */
-  const IDLE = `<div class="det-in"><p class="det-idle"><b>Eleven apps.</b>
+  const IDLE = `<div class="det-in"><p class="det-idle"><b>Twelve apps.</b>
     Each one started as a problem I wanted solved for myself. Pick one from the
     index, or off its orbit.</p></div>`;
 
@@ -588,7 +588,7 @@
      readout. A pointer or the caret takes it straight over; the walk resumes a
      beat after they leave, carrying on from wherever it was rather than
      restarting at the top. */
-  const DWELL = 3.4, RESUME_AFTER = 1.8;
+  const DWELL = 6.8, RESUME_AFTER = 1.8;
   let held = false, dwell = 1.2;
 
   function hold(i){ held = true; select(i); }
@@ -687,7 +687,7 @@
           <div class="ab-skill"><h4>${s.title}</h4><p>${s.items}</p></div>`).join('')}
         <h3>Get in touch</h3>
         <div class="ab-links">${RESUME.links.map(l =>
-          `<a href="${l.url}"${l.external ? ' target="_blank" rel="noopener noreferrer"' : ''}>${l.label}</a>`
+          `<a href="${l.url}"${l.external ? ' target="_blank" rel="me noopener noreferrer"' : ''}>${l.label}</a>`
         ).join('')}</div>
       </section>
     </div>`;

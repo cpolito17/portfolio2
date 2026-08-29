@@ -21,7 +21,7 @@
   const RINGS = [
     { planet:'Venus', a:ELEM.Venus[0],  count:4 },
     { planet:'Earth', a:ELEM.Earth[0],  count:4 },
-    { planet:'Mars',  a:ELEM.Mars[0],   count:3 }
+    { planet:'Mars',  a:ELEM.Mars[0],   count:4 }
   ];
   const A_MAX = ELEM.Mars[0];
 
@@ -189,7 +189,7 @@
   }
 
   /* ── Selection ────────────────────────────────────────── */
-  const IDLE = `<div class="panel-in"><p class="panel-idle"><b>Eleven apps, plotted
+  const IDLE = `<div class="panel-in"><p class="panel-idle"><b>Twelve apps, plotted
     on the inner solar system.</b> Ring radii are the planets' real orbits to scale and
     every planet sits at its true longitude for tonight. Pick a body to read what it
     does.</p></div>`;

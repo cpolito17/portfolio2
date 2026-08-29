@@ -19,7 +19,8 @@ const SLOTS = [
   { app: A.localize,     t:'lg', col:'2 / 4', row:3 },
   { app: A.homegamehero, t:'sm', col:'4 / 5', row:3 },
   { app: A.apex,         t:'lg', col:'1 / 3', row:4 },
-  { app: A.payload,      t:'sm', col:'3 / 4', row:4 }
+  { app: A.payload,      t:'sm', col:'3 / 4', row:4 },
+  { app: A.garagebuilder, t:'lg', col:'1 / 3', row:5 }
 ];
 
 const tiles = SLOTS.map(s => {

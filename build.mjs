@@ -22,10 +22,11 @@ const CURRENT = 'current';
 /* Where the variant review lives on the deployed site. The live design keeps
    the root; everything under this prefix is the review harness.
 
-   wrangler.jsonc claims only charliepolito.com/ and charliepolito.com/about, so
-   this prefix is not routed on the public domain at all. It is reachable on the
-   Worker's workers.dev subdomain and nowhere else, which is what makes it safe
-   to ship the review alongside the live site instead of on a second Worker. */
+   wrangler.jsonc now claims charliepolito.com/*, so unlike when this was
+   written, the review IS reachable on the public domain. It is therefore
+   disallowed in robots.txt and every page under it carries a noindex robots
+   tag: thirteen crawlable near-copies of the home page would compete with /
+   for the owner's own name, which is the one thing the SEO work is for. */
 const REVIEW = 'preview';
 
 /* Shared substitutions. Both are large data blobs and are inlined once per page
@@ -59,10 +60,120 @@ const prose = () => [
   </div>`,
   `<h2 class="rise">Get in touch</h2>`,
   `<div class="links rise">${RESUME.links.map(l => `
-    <a class="glass pill" href="${l.url}"${l.external ? ' target="_blank" rel="noopener noreferrer"' : ''}>${esc(l.label)}</a>`).join('')}
+    <a class="glass pill" href="${l.url}"${l.external ? ' target="_blank" rel="me noopener noreferrer"' : ''}>${esc(l.label)}</a>`).join('')}
   </div>`
 ].join('\n');
 const fill = s => Object.entries(SUBST).reduce((a, [k, v]) => a.replace(k, () => v), s);
+
+/* ═══ SEO ═══════════════════════════════════════════════════
+   The one search term this site needs to win is the owner's name, so the head
+   is built here rather than written into eight shells that would drift apart.
+   Every page gets it, and each page's own <title>, description and canonical
+   stay in its shell where they are easy to read.
+
+   Two things matter more than the tags themselves:
+
+   - `preview` is noindex. wrangler.jsonc now routes charliepolito.com/*, so the
+     thirteen variants under /preview are publicly reachable copies of the home
+     page. Left indexable they are thirteen near-duplicates competing with / for
+     the same name query, which is the one outcome this whole exercise is
+     against.
+   - The Person block carries `sameAs`. That is what lets a search engine tie
+     the LinkedIn and GitHub profiles that already rank for the name to this
+     domain, and treat all three as one entity rather than three strangers. */
+const SITE = {
+  origin: 'https://charliepolito.com',
+  name:   RESUME.name,
+  role:   'Industrial Engineer',
+  locality: 'Los Angeles',
+  region:   'CA',
+  country:  'US'
+};
+
+const ld = obj => `<script type="application/ld+json">${JSON.stringify(obj)}</script>`;
+
+/* One Person, referenced by @id from every page, so the two pages describe the
+   same entity instead of two people who happen to share a name. */
+const PERSON_ID = `${SITE.origin}/#charlie-polito`;
+const PERSON = {
+  '@type': 'Person',
+  '@id': PERSON_ID,
+  name: SITE.name,
+  givenName: 'Charlie',
+  familyName: 'Polito',
+  url: `${SITE.origin}/`,
+  mainEntityOfPage: `${SITE.origin}/about`,
+  jobTitle: SITE.role,
+  description: RESUME.lede,
+  email: 'mailto:cpolito@umich.edu',
+  worksFor: { '@type': 'Organization', name: RESUME.roles[0].org },
+  alumniOf: { '@type': 'CollegeOrUniversity', name: 'University of Michigan' },
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: SITE.locality,
+    addressRegion: SITE.region,
+    addressCountry: SITE.country
+  },
+  knowsAbout: RESUME.skills.flatMap(g => g.items.split(', ')),
+  sameAs: RESUME.links.filter(l => l.external).map(l => l.url)
+};
+
+/* The home page is also the software index, so the apps are listed as an
+   ItemList hanging off the Person. Names and URLs come from apps.js, parsed
+   rather than copied, so the catalogue stays the single source. */
+function catalogue(){
+  const src = read('./src/core/apps.js');
+  const order = src.match(/const ORDER = \[([^\]]*)\]/)[1]
+    .match(/'([^']+)'/g).map(m => m.slice(1, -1));
+  const by = {};
+  for (const m of src.matchAll(/^  (\w+): \{ id:'[^']*', name:'([^']*)', url:'([^']*)'/gm))
+    by[m[1]] = { name: m[2], url: m[3] };
+  return order.map((k, i) => ({
+    '@type': 'ListItem', position: i + 1,
+    item: { '@type': 'SoftwareApplication', name: by[k].name, url: by[k].url,
+            applicationCategory: 'WebApplication', operatingSystem: 'Web browser',
+            author: { '@id': PERSON_ID } }
+  }));
+}
+
+const COMMON = [
+  `<meta name="author" content="${SITE.name}">`,
+  `<meta property="og:site_name" content="${SITE.name}">`,
+  `<meta property="og:locale" content="en_US">`,
+  `<meta name="twitter:card" content="summary">`,
+  `<meta name="twitter:title" content="${SITE.name}">`
+].join('\n');
+
+const INDEXABLE = '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">';
+const NOINDEX   = '<meta name="robots" content="noindex, nofollow">';
+
+function seoHead(kind){
+  if (kind === 'preview') return NOINDEX;
+  if (kind === 'about') return [
+    INDEXABLE, COMMON,
+    ld({ '@context': 'https://schema.org', '@graph': [
+      { '@type': 'ProfilePage', '@id': `${SITE.origin}/about#page`,
+        url: `${SITE.origin}/about`, name: `About ${SITE.name}`,
+        isPartOf: { '@id': `${SITE.origin}/#website` }, mainEntity: { '@id': PERSON_ID } },
+      PERSON
+    ]})
+  ].join('\n');
+  return [
+    INDEXABLE, COMMON,
+    ld({ '@context': 'https://schema.org', '@graph': [
+      { '@type': 'WebSite', '@id': `${SITE.origin}/#website`,
+        url: `${SITE.origin}/`, name: SITE.name,
+        inLanguage: 'en-US', publisher: { '@id': PERSON_ID } },
+      { '@type': 'WebPage', '@id': `${SITE.origin}/#webpage`,
+        url: `${SITE.origin}/`, name: SITE.name,
+        isPartOf: { '@id': `${SITE.origin}/#website` }, about: { '@id': PERSON_ID } },
+      Object.assign({}, PERSON, {
+        hasPart: { '@type': 'ItemList', name: `Apps by ${SITE.name}`,
+                   numberOfItems: catalogue().length, itemListElement: catalogue() }
+      })
+    ]})
+  ].join('\n');
+}
 
 /* The catalogue's reading order is a list of keys into APPS, and a key that
    matches nothing there only fails in the browser, as a TypeError deep inside a
@@ -75,6 +186,19 @@ function checkCatalogue(){
   if (!order) throw new Error('apps.js: no ORDER array found');
   const bad = [...order[1].matchAll(/'([^']+)'/g)].map(m => m[1]).filter(k => !known.has(k));
   if (bad.length) throw new Error(`apps.js: ORDER names ${bad.map(k => `"${k}"`).join(', ')}, not in APPS`);
+
+  /* Orbit and D deal the catalogue onto fixed rings. If the ring seats and the
+     catalogue disagree, `ORDER[n++]` runs off the end and a variant reads
+     `.url` off undefined, which is the same blank page the check above exists
+     to prevent - so catch the count here too, when an app is added. */
+  const n = [...order[1].matchAll(/'([^']+)'/g)].length;
+  for (const v of ['orbit', 'd']){
+    const seats = [...read(`./src/variants/${v}/hub.js`)
+      .matchAll(/planet:'(?:Venus|Earth|Mars)',\s*a:\s*ELEM\.\w+\[0\],\s*count:\s*(\d+)/g)]
+      .reduce((a, m) => a + Number(m[1]), 0);
+    if (seats !== n)
+      throw new Error(`variants/${v}: rings seat ${seats} apps, apps.js ORDER has ${n}`);
+  }
 }
 checkCatalogue();
 
@@ -85,11 +209,12 @@ const bundleJS  = list => list.map(f => `<script>${fill(read('./src/' + f))}</sc
 const bundleCSS = list => list.map(f => read('./src/' + f)).join('\n');
 const MONO_LINK = '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap">';
 
-function render(shell, css, js){
+function render(shell, css, js, kind = 'home'){
   let out = read(shell)
     .replace('__STYLES__',  () => bundleCSS([...css, 'core/type.css']))
     .replace('__SCRIPTS__', () => bundleJS(js));
   if (!out.includes('family=JetBrains+Mono')) out = out.replace('</head>', MONO_LINK + '\n</head>');
+  out = out.replace('</head>', () => seoHead(kind) + '\n</head>');
   const left = out.replace('__PROSE__', '').match(/__[A-Z]+__/g);
   if (left) throw new Error(`${shell}: unfilled placeholders ${[...new Set(left)].join(', ')}`);
   return out;
@@ -132,13 +257,16 @@ for (const name of names){
   /* A visual-only variant may reuse another variant's shell. This makes the
      fixed-layout comparison explicit and prevents copied markup from drifting. */
   const shell = v.html ?? `./src/variants/${name}/index.html`;
-  const html = render(shell, v.css, v.js);
+  /* Everything under the review prefix is noindex: the variants are thirteen
+     near-copies of the home page, and charliepolito.com/* now routes here, so
+     without this they would compete with / for the owner's own name. */
+  const html = render(shell, v.css, v.js, 'preview');
 
   /* CURRENT is emitted twice: once at the root, which is the live site, and
      once under the review prefix so the picker can frame it beside the
-     alternatives. Same bytes, apart from the back link. */
+     alternatives. Same bytes, apart from the back link and the robots tag. */
   if (name === CURRENT){
-    emit('index.html', html);
+    emit('index.html', render(shell, v.css, v.js, 'home'));
     emit(`${REVIEW}/embed.html`, html                      // wrapper-stripped, for embedding
       .replace(/^[\s\S]*?<title>/, '<title>')
       .replace(/<\/head>\s*<body>/, '')
@@ -151,7 +279,12 @@ for (const name of names){
 /* ── About, shared by every variant ───────────────────────── */
 emit('about.html', render('./src/about.html',
   ['core/base.css', 'core/about.css'],
-  ['core/sky.js', 'core/about.js', 'core/nav.js']).replace('__PROSE__', prose));
+  ['core/sky.js', 'core/about.js', 'core/nav.js'], 'about').replace('__PROSE__', prose));
+
+/* ── 404, served by wrangler's not_found_handling ──────────── */
+emit('404.html', render('./src/404.html',
+  ['core/base.css', 'core/about.css'],
+  ['core/sky.js', 'core/about.js', 'core/nav.js'], 'preview'));
 
 /* ── The picker, at the root of the review prefix ─────────── */
 const manifest = built.map(({ name, label, blurb, href }) => ({ name, label, blurb, href }));
@@ -163,3 +296,36 @@ emit(`${REVIEW}/index.html`, read('./src/compare.html')
    the picker moved. */
 writeFileSync(url(`./dist/${REVIEW}/variants.json`),
   JSON.stringify({ review: REVIEW, variants: manifest }, null, 2));
+
+/* ── robots.txt and sitemap.xml ────────────────────────────
+   Only the two pages this Worker actually owns are listed. The apps on
+   /apex, /taxhaven and the rest are served by other Workers and are not this
+   sitemap's to claim. /preview is disallowed here as well as noindexed in the
+   page: the header stops it being indexed, the robots rule stops the crawl
+   budget going to thirteen copies of one page in the first place. */
+const PAGES = [
+  { loc: `${SITE.origin}/`,      priority: '1.0' },
+  { loc: `${SITE.origin}/about`, priority: '0.8' }
+];
+const lastmod = new Date().toISOString().slice(0, 10);
+
+writeFileSync(url('./dist/robots.txt'),
+`User-agent: *
+Allow: /
+Disallow: /${REVIEW}/
+
+Sitemap: ${SITE.origin}/sitemap.xml
+`);
+
+writeFileSync(url('./dist/sitemap.xml'),
+`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${PAGES.map(p => `  <url>
+    <loc>${p.loc}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>${p.priority}</priority>
+  </url>`).join('\n')}
+</urlset>
+`);
+console.log('robots.txt / sitemap.xml written');
