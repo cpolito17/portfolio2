@@ -46,7 +46,13 @@ body.orbit{font-family:var(--font)}
 .side-main,.detail{transition:opacity .24s ease-out,visibility .24s}
 .side-main{display:flex;flex-direction:column;gap:1.15rem;min-height:0;
   padding:clamp(1.5rem,3.5vh,2.25rem) 1rem clamp(1.25rem,3vh,1.75rem) clamp(1.25rem,2vw,1.9rem)}
-.brand{flex-shrink:0}
+.brand{flex-shrink:0;display:flex;align-items:flex-start;gap:.6rem}
+.brand-text{min-width:0}
+/* The mark is the supplied artwork at its own aspect, capped by height so the
+   two lines of type beside it set the size. It is white-on-transparent, so it
+   needs no plate of its own over the sky. */
+.brand-mark{width:auto;height:2.3rem;flex-shrink:0;display:block;
+  margin-top:.05rem;image-rendering:auto}
 .wordmark{font-size:1.15rem;font-weight:700;letter-spacing:-.03em;margin:0}
 .brand-sub{margin:.3rem 0 0;font-size:.66rem;line-height:1.55;color:var(--ink-3)}
 

@@ -24,6 +24,7 @@ Shipped in `build.mjs`, so every page gets it and no shell can forget a tag.
 | `robots.txt` and `sitemap.xml` | Crawlers get a map instead of guessing. `sitemap.xml` lists only `/` and `/about` — the apps are other Workers and are not this sitemap's to claim. |
 | `noindex` on `/preview/*` and `Disallow: /preview/` | **Was an active problem.** `wrangler.jsonc` routes `charliepolito.com/*`, so the thirteen design variants were publicly crawlable near-copies of the home page. Thirteen duplicates competing with `/` for your name is the exact outcome we are trying to avoid. |
 | `<title>` and `<meta description>` rewritten | Home is `Charlie Polito - Industrial Engineer and App Builder`; About is `About Charlie Polito - Resume, Work History and Contact`. The name stays first in both, so the exact-match signal is intact, but there is now something for a searcher to actually read in the result. |
+| `logo.png` wired to `rel="icon"`, `apple-touch-icon` and `og:image` | The favicon is what Google prints beside the result. One source file for all three, so they cannot drift into three different marks. |
 | `rel="me"` on the outbound LinkedIn and GitHub links | The other half of `sameAs`. The claim now runs in both directions. |
 | `<meta name="author">`, `og:site_name`, `og:locale`, profile OG tags, `twitter:card` | Cheap, standard, and makes a shared link look like a person rather than a bare URL. |
 | A real `404.html` | `wrangler.jsonc` sets `not_found_handling: "404-page"` and there was no 404 page. Every bad URL was returning an unstyled error. |
@@ -84,11 +85,10 @@ or `C. Polito`, or you are splitting one entity into two in Google's eyes.
 
 ### 3. Nice to have (15 min, optional)
 
-- **An OG image.** Social previews are currently text-only. Make a 1200×630 PNG
-  with your name on it, drop it in the repo as `og.png`, force-add it (the
-  repo's `.gitignore` excludes `*.png`), serve it from `dist/`, and add
-  `<meta property="og:image" content="https://charliepolito.com/og.png">`.
-  Affects click-through on shared links; does not affect ranking.
+- **A wider OG image.** `logo.png` is now the link-preview thumbnail, which
+  renders as a small square. A 1200×630 landscape card reads better in a Slack
+  or iMessage unfurl. If you want one, add it and point `og:image` at it
+  instead. Affects click-through on shared links, not ranking.
 - **Bing Webmaster Tools** (<https://www.bing.com/webmasters>). It can import
   your Search Console setup in one click. Bing is small but it also feeds
   DuckDuckGo and ChatGPT search.

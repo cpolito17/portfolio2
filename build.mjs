@@ -12,7 +12,8 @@
    claimed by any route in wrangler.jsonc.
 
    The About page is shared by every variant and is built once. */
-import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, existsSync, copyFileSync }
+  from 'node:fs';
 
 const url  = p => new URL(p, import.meta.url);
 const read = p => readFileSync(typeof p === 'string' ? url(p) : p, 'utf8');
@@ -144,13 +145,41 @@ const COMMON = [
   `<meta name="twitter:title" content="${SITE.name}">`
 ].join('\n');
 
+/* ── The monogram ──────────────────────────────────────────
+   One file, src/static/logo.png, drives the mark beside the wordmark, the
+   favicon Google prints next to the search result, the iOS touch icon and the
+   link-preview thumbnail. Wiring them from one source is what keeps them the
+   same image; four hand-written tags is how they stop being.
+
+   It is optional. Absent, the build warns and emits none of the four, because
+   the alternative is a broken <img> on the live page and a 404 on every
+   favicon request - worse than not having a logo. */
+const LOGO = 'logo.png';
+const hasLogo = existsSync(url(`./src/static/${LOGO}`));
+const hasIco  = existsSync(url('./src/static/favicon.ico'));
+
+const BRANDMARK = hasLogo
+  ? `<img class="brand-mark" src="/${LOGO}" width="512" height="512" alt="" decoding="async">`
+  : '';
+
+/* alt="" on purpose: the <h1> beside it already says "Charlie Polito", and a
+   screen reader announcing the name twice is worse than not announcing the
+   mark at all. */
+const ICONS_HEAD = [
+  hasIco  ? '<link rel="icon" href="/favicon.ico" sizes="32x32">' : '',
+  hasLogo ? `<link rel="icon" href="/${LOGO}" type="image/png" sizes="any">` : '',
+  hasLogo ? `<link rel="apple-touch-icon" href="/${LOGO}">` : '',
+  hasLogo ? `<meta property="og:image" content="${SITE.origin}/${LOGO}">` : '',
+  hasLogo ? '<meta property="og:image:alt" content="Charlie Polito">' : ''
+].filter(Boolean).join('\n');
+
 const INDEXABLE = '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">';
 const NOINDEX   = '<meta name="robots" content="noindex, nofollow">';
 
 function seoHead(kind){
-  if (kind === 'preview') return NOINDEX;
+  if (kind === 'preview') return [NOINDEX, ICONS_HEAD].filter(Boolean).join('\n');
   if (kind === 'about') return [
-    INDEXABLE, COMMON,
+    INDEXABLE, COMMON, ICONS_HEAD,
     ld({ '@context': 'https://schema.org', '@graph': [
       { '@type': 'ProfilePage', '@id': `${SITE.origin}/about#page`,
         url: `${SITE.origin}/about`, name: `About ${SITE.name}`,
@@ -159,7 +188,7 @@ function seoHead(kind){
     ]})
   ].join('\n');
   return [
-    INDEXABLE, COMMON,
+    INDEXABLE, COMMON, ICONS_HEAD,
     ld({ '@context': 'https://schema.org', '@graph': [
       { '@type': 'WebSite', '@id': `${SITE.origin}/#website`,
         url: `${SITE.origin}/`, name: SITE.name,
@@ -214,7 +243,8 @@ function render(shell, css, js, kind = 'home'){
     .replace('__STYLES__',  () => bundleCSS([...css, 'core/type.css']))
     .replace('__SCRIPTS__', () => bundleJS(js));
   if (!out.includes('family=JetBrains+Mono')) out = out.replace('</head>', MONO_LINK + '\n</head>');
-  out = out.replace('</head>', () => seoHead(kind) + '\n</head>');
+  out = out.replace('</head>', () => seoHead(kind) + '\n</head>')
+           .replace('__BRANDMARK__', () => BRANDMARK);
   const left = out.replace('__PROSE__', '').match(/__[A-Z]+__/g);
   if (left) throw new Error(`${shell}: unfilled placeholders ${[...new Set(left)].join(', ')}`);
   return out;
@@ -296,6 +326,19 @@ emit(`${REVIEW}/index.html`, read('./src/compare.html')
    the picker moved. */
 writeFileSync(url(`./dist/${REVIEW}/variants.json`),
   JSON.stringify({ review: REVIEW, variants: manifest }, null, 2));
+
+/* ── src/static, copied verbatim to the site root ──────────
+   Everything else in this build is inlined into a page. These are the files
+   that have to exist at a URL of their own: the browser asks for a favicon by
+   path, and og:image has to be fetchable by a crawler that never runs the JS. */
+for (const f of readdirSync(url('./src/static'))){
+  if (f === 'README.md') continue;
+  copyFileSync(url(`./src/static/${f}`), url(`./dist/${f}`));
+  console.log(`${f.padEnd(22)} copied`);
+}
+if (!hasLogo) console.warn(
+  'WARNING  src/static/logo.png is missing: no brand mark, favicon, touch icon or og:image.\n' +
+  '         See src/static/README.md.');
 
 /* ── robots.txt and sitemap.xml ────────────────────────────
    Only the two pages this Worker actually owns are listed. The apps on

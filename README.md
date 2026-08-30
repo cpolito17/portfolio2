@@ -40,6 +40,8 @@ src/
   data/
     stars.txt   2,887 stars to magnitude 5.5, from the Yale Bright Star Catalogue
     icons.json  24x24 pixel icons, one per app plus About
+  static/       copied verbatim to the site root, not inlined
+    logo.png    the monogram: brand mark, favicon, touch icon and og:image
 build.mjs       inlines everything into dist/
 shots.mjs       renders every variant at 1440, 820 and 390 into shots/
 dist/           built output, gitignored
@@ -161,6 +163,19 @@ cost in the design.
 See [docs/hub-spec.md](docs/hub-spec.md) for the full design spec and
 [docs/design-transfer.md](docs/design-transfer.md) for the two pieces carried over
 from the previous portfolio.
+
+## The monogram
+
+`src/static/logo.png` is one square PNG and `build.mjs` wires it into four
+places from there: the mark left of the wordmark on the hub, `rel="icon"` (what
+Google prints beside the search result), `apple-touch-icon`, and `og:image`.
+Four hand-written tags is how a logo becomes four slightly different logos; one
+source file is how it does not.
+
+The build tolerates its absence — it warns and emits none of the four — because
+a missing file should cost a warning, not a broken `<img>` on the live page and
+a 404 on every favicon request. `.gitignore` excludes `*.png` repo-wide and
+re-admits `src/static/*.png`, so the logo commits without `-f`.
 
 ## Search
 
