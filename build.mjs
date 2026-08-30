@@ -158,8 +158,20 @@ const LOGO = 'logo.png';
 const hasLogo = existsSync(url(`./src/static/${LOGO}`));
 const hasIco  = existsSync(url('./src/static/favicon.ico'));
 
+/* Intrinsic size straight out of the PNG's IHDR, rather than a hardcoded pair
+   that silently stops matching the day the artwork is re-exported. The browser
+   needs it to reserve the right box before the image arrives; a wrong ratio
+   there is a layout shift on every cold load. */
+function pngSize(file){
+  const b = readFileSync(file);
+  if (b.length < 24 || b.readUInt32BE(12) !== 0x49484452)   // 'IHDR'
+    throw new Error(`${LOGO} is not a PNG (no IHDR). See src/static/README.md.`);
+  return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+}
+
 const BRANDMARK = hasLogo
-  ? `<img class="brand-mark" src="/${LOGO}" width="512" height="512" alt="" decoding="async">`
+  ? (({ w, h }) => `<img class="brand-mark" src="/${LOGO}" width="${w}" height="${h}"`
+      + ' alt="" decoding="async">')(pngSize(url(`./src/static/${LOGO}`)))
   : '';
 
 /* alt="" on purpose: the <h1> beside it already says "Charlie Polito", and a

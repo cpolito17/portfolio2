@@ -18,6 +18,13 @@ wires it into four places at once:
 of those four. That is deliberate: a missing file should cost a warning, not a
 broken image on the live site and a 404 on every favicon request.
 
-`favicon.ico` is optional and only worth adding for old browsers, which request
-`/favicon.ico` by path whether or not the page links to one. A 32x32 `.ico` is
-enough.
+The `<img>` tag's `width` and `height` are read out of the PNG's own header at
+build time, so re-exporting the artwork at a different size needs no code
+change. A file that is not a PNG fails the build rather than shipping a broken
+mark.
+
+## favicon.ico — optional
+
+Old browsers request `/favicon.ico` by path whether or not the page links to
+one. Drop a `.ico` here and the build links it ahead of the PNG; leave it out
+and the PNG covers every browser that matters.
