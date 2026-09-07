@@ -353,14 +353,18 @@ if (!hasLogo) console.warn(
   '         See src/static/README.md.');
 
 /* ── robots.txt and sitemap.xml ────────────────────────────
-   Only the two pages this Worker actually owns are listed. The apps on
-   /apex, /taxhaven and the rest are served by other Workers and are not this
-   sitemap's to claim. /preview is disallowed here as well as noindexed in the
+   The sitemap is origin-wide, so it includes catalogue apps served by other
+   Workers when they share charliepolito.com. External custom domains keep
+   their own sitemaps. /preview is disallowed here as well as noindexed in the
    page: the header stops it being indexed, the robots rule stops the crawl
    budget going to thirteen copies of one page in the first place. */
 const PAGES = [
   { loc: `${SITE.origin}/`,      priority: '1.0' },
-  { loc: `${SITE.origin}/about`, priority: '0.8' }
+  { loc: `${SITE.origin}/about`, priority: '0.8' },
+  ...catalogue()
+    .map(entry => entry.item.url)
+    .filter(appUrl => appUrl.startsWith(`${SITE.origin}/`))
+    .map(loc => ({ loc, priority: '0.7' }))
 ];
 const lastmod = new Date().toISOString().slice(0, 10);
 

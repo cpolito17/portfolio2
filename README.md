@@ -133,7 +133,7 @@ client-side, so Cloudflare serves `dist/` directly.
 
 It claims `charliepolito.com/*` so that social apps can append tracking query
 parameters without falling through to the dead DNS origin. The more specific
-routes on `/apex`, `/taxhaven`, `/trajectory` and the rest still take
+routes on `/apex`, `/taxhaven`, `/compass` and the rest still take
 precedence, so those Workers are untouched.
 
 To build on push, point Cloudflare Workers Builds at this repo with build command
@@ -191,6 +191,6 @@ forget:
   search engine treat the three as one person rather than three strangers
 - `WebSite` and `WebPage` on `/`, `ProfilePage` on `/about`, and the app
   catalogue as an `ItemList`, parsed out of `apps.js` rather than copied
-- `robots.txt` and `sitemap.xml`, listing only the two pages this Worker owns
+- `robots.txt` and an origin-wide `sitemap.xml` covering the portfolio pages and same-domain public apps
 - `noindex` on everything under `/preview` and on `404.html`
 - `rel="me"` on the outbound profile links

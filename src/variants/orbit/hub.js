@@ -36,7 +36,7 @@
   const RINGS = [
     { planet:'Venus', a: ELEM.Venus[0], count: 4 },
     { planet:'Earth', a: ELEM.Earth[0], count: 4 },
-    { planet:'Mars',  a: ELEM.Mars[0],  count: 4 }
+    { planet:'Mars',  a: ELEM.Mars[0],  count: 5 }
   ];
   const L0 = Math.log(RINGS[0].a), L1 = Math.log(RINGS[2].a);
   /* Only the three app rings are spread across the log range. Mercury is well

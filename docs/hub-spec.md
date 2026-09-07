@@ -117,7 +117,7 @@ full Frutiger Aero — cursor-reactive bubbles, animated waves, a Windows 98 cur
 | Cairn | `tasks.charliepolito.com` |
 | Localize | `charliepolito.com/localize` |
 | Apex | `charliepolito.com/apex` |
-| Trajectory | `charliepolito.com/trajectory` |
+| Compass | `charliepolito.com/compass` |
 | HomeGameHero | `charliepolito.com/homegame` |
 | LiteEdit | `liteedit.charliepolito.com` |
 | Take the Long Way | `charliepolito.com/takethelongway` |

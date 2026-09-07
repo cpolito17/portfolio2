@@ -20,8 +20,8 @@ Shipped in `build.mjs`, so every page gets it and no shell can forget a tag.
 | `Person` JSON-LD with `sameAs` → LinkedIn, GitHub | The single highest-value item. It is the machine-readable claim that this domain, that LinkedIn and that GitHub are the same person. Your profiles already rank for your name; this transfers that authority to the domain. |
 | One shared `@id` for the Person across `/` and `/about` | Both pages describe one entity, not two people with the same name. |
 | `WebSite` + `WebPage` on `/`, `ProfilePage` on `/about` | Tells Google `/` is the site's home and `/about` is the profile page for that person. Feeds the knowledge-panel / sitelinks path. |
-| App catalogue as an `ItemList` of `SoftwareApplication`, each authored by the Person | Twelve named things attributed to you, parsed straight out of `apps.js`. |
-| `robots.txt` and `sitemap.xml` | Crawlers get a map instead of guessing. `sitemap.xml` lists only `/` and `/about` — the apps are other Workers and are not this sitemap's to claim. |
+| App catalogue as an `ItemList` of `SoftwareApplication`, each authored by the Person | Thirteen named things attributed to you, parsed straight out of `apps.js`. |
+| `robots.txt` and `sitemap.xml` | Crawlers get an origin-wide map covering `/`, `/about`, and the catalogue apps hosted beneath `charliepolito.com`; apps on other domains keep their own sitemaps. |
 | `noindex` on `/preview/*` and `Disallow: /preview/` | **Was an active problem.** `wrangler.jsonc` routes `charliepolito.com/*`, so the thirteen design variants were publicly crawlable near-copies of the home page. Thirteen duplicates competing with `/` for your name is the exact outcome we are trying to avoid. |
 | `<title>` and `<meta description>` rewritten | Home is `Charlie Polito - Industrial Engineer, A Digital Portfolio`; About is `About Charlie Polito - Resume, Work History and Contact`. The name stays first in both, so the exact-match signal is intact, but there is now something for a searcher to actually read in the result. |
 | `logo.png` wired to `rel="icon"`, `apple-touch-icon` and `og:image` | The favicon is what Google prints beside the result. One source file for all three, so they cannot drift into three different marks. |
@@ -103,7 +103,7 @@ or `C. Polito`, or you are splitting one entity into two in Google's eyes.
 Scoped out on purpose, and worth knowing so nobody wonders later.
 
 - **Per-app SEO.** You said you do not need it, and the apps are separate
-  Workers anyway. The `ItemList` still names all twelve on the home page, so
+  Workers anyway. The `ItemList` still names all thirteen on the home page, so
   they are discoverable without any per-app work.
 - **Server-side rendering of the app list.** The home page fills its index from
   JavaScript. Google renders JavaScript, and the `<h1>`, the tagline and the

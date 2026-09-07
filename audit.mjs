@@ -1,6 +1,7 @@
 import { chromium } from 'playwright';
 import { readFileSync } from 'node:fs';
-const b = await chromium.launch({ executablePath:'/opt/pw-browsers/chromium' });
+const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
+const b = await chromium.launch(executablePath ? { executablePath } : {});
 const p = await b.newPage({ viewport:{width:1440,height:900} });
 const BAD = [
   [/[—–]/, 'em-dash or en-dash'],
